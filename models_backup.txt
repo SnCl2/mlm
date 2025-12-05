@@ -1,0 +1,524 @@
+
+
+=== app/Models/User.php ===
+
+<?php
+
+
+namespace App\Models;
+use App\Models\CommissionLevel;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    protected $fillable = [
+        'name', 'email', 'phone', 'password',
+        'referral_code', 'referred_by', 'placement_leg', 'is_kyc_verified', 'place_under','is_active'
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function referredBy()
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    public function binaryNode()
+    {
+        return $this->hasOne(BinaryNode::class);
+    }
+
+
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function shopTransactions(): HasMany
+    {
+        return $this->hasMany(ShopTransaction::class);
+    }
+
+    public function payoutRequests(): HasMany
+    {
+        return $this->hasMany(PayoutRequest::class);
+    }
+    
+    public function cashbackWallets()
+    {
+        return $this->hasMany(CashbackWallet::class);
+    }
+    
+    public function referralWallets()
+    {
+        return $this->hasMany(ReferralWallet::class);
+    }
+    
+    public function newReferrals()
+    {
+        return $this->hasMany(ReferralWallet::class, 'new_user_id');
+    }
+    
+    public function parentReferrals()
+    {
+        return $this->hasMany(ReferralWallet::class, 'parent_id');
+    }
+    
+    public function binaryWallet()
+    {
+        return $this->hasOne(BinaryWallet::class);
+    }
+    
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+    
+    public function getUplineChain()
+    {
+        $chain = [];
+        $visited = [];
+    
+        $current = $this;
+    
+        // Get commission levels
+        $levels = \App\Models\CommissionLevel::all()->keyBy('level');
+        $maxLevel = $levels->count();
+    
+        for ($level = 1; $level <= $maxLevel; $level++) {
+            // Level 1: buyer (no position needed)
+            if ($level === 1) {
+                $chain[$level] = [
+                    'user_id'    => $current->id,
+                    'percentage' => $levels[$level]->percentage ?? 0,
+                    'position'   => null,
+                ];
+                continue;
+            }
+    
+            // Stop if no binaryNode or no parent
+            if (!$current->binaryNode || !$current->binaryNode->parent_id) break;
+    
+            $parentId = $current->binaryNode->parent_id;
+            $position = $current->binaryNode->position; // left/right of the parent
+    
+            // Prevent loops
+            if (in_array($parentId, $visited)) break;
+    
+            $parent = static::find($parentId);
+            if (!$parent) break;
+    
+            $visited[] = $parentId;
+    
+            $chain[$level] = [
+                'user_id'    => $parent->id,
+                'percentage' => $levels[$level]->percentage ?? 0,
+                'position'   => $position,
+            ];
+    
+            // Move up the chain
+            $current = $parent;
+        }
+    
+        return $chain;
+    }
+
+
+    public function kyc()
+    {
+        return $this->hasOne(UserKyc::class);
+    }
+
+    public function getTotalCashback()
+    {
+        // Get all shop transactions
+        $transactions = $this->shopTransactions;
+    
+        // Get commission level 1 percentage (e.g., 5 means 5%)
+        $level1 = CommissionLevel::where('level', 1)->first();
+        $percentage = $level1 ? ($level1->percentage / 100) : 0;
+    
+        // Calculate total cashback from transactions
+        $cashbackFromTransactions = $transactions->sum(function ($transaction) use ($percentage) {
+            return $transaction->commission_amount * $percentage;
+        });
+    
+        // Add CashbackWallet total
+        $cashbackWalletSum = $this->cashbackWallets()->sum('cashback_amount');
+    
+        // Total Cashback
+        return $cashbackFromTransactions + $cashbackWalletSum;
+    }
+    
+    public function getTotalWithdrawableBalance()
+    {
+        $cashback = $this->cashbackWallets()->sum('cashback_amount');
+        $referral = $this->referralWallets()->sum('amount');
+        $binary   = $this->binaryWallet ? $this->binaryWallet->matching : 0;
+    
+        return [
+            'cashback' => $cashback,
+            'referral' => $referral,
+            'binary'   => $binary,
+            'total'    => $cashback + $referral + $binary,
+        ];
+    }
+
+
+
+
+}
+
+
+=== app/Models/CashbackRecord.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CashbackRecord extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'shop_id',
+        'amount',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
+    }
+}
+
+
+=== app/Models/CommissionLevel.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CommissionLevel extends Model
+{
+    // Mass assignable fields
+    protected $fillable = [
+        'level',
+        'percentage',
+    ];
+}
+
+
+=== app/Models/UserKyc.php ===
+
+<?php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class UserKyc extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'profile_image',
+        'pan_card_image',
+        'aadhar_card_image',
+        'alternate_phone',
+        'bank_account_number',
+        'ifsc_code',
+        'upi_id',
+        'status',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+
+=== app/Models/Withdrawal.php ===
+
+<?php
+
+// app/Models/Withdrawal.php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Withdrawal extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'cashback_amount',
+        'referral_amount',
+        'binary_amount',
+        'total_amount',
+        'status',
+        'note',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+
+=== app/Models/ShopTransaction.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ShopTransaction extends Model
+{
+    protected $fillable = [
+        'user_id', 'shop_id', 'purchase_amount', 'commission_amount'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
+    }
+}
+  
+
+=== app/Models/PayoutRequest.php ===
+
+<?php
+
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class PayoutRequest extends Model
+{
+    protected $fillable = ['user_id', 'amount', 'status'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+
+=== app/Models/Referral.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Referral extends Model
+{
+    protected $fillable = ['referrer_id', 'referred_id'];
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referred()
+    {
+        return $this->belongsTo(User::class, 'referred_id');
+    }
+}
+
+
+=== app/Models/BinaryNode.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class BinaryNode extends Model
+{
+    protected $fillable = [
+        'user_id', 'parent_id', 'position', 'left_points', 'right_points'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+}
+
+
+=== app/Models/BinaryWallet.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class BinaryWallet extends Model
+{
+    protected $fillable = ['user_id',  'matching_amount'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+
+=== app/Models/ReferralWallet.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ReferralWallet extends Model
+{
+    protected $fillable = ['user_id',  'amount'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class); // Who earned
+    }
+
+
+
+}
+
+
+=== app/Models/Transaction.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Transaction extends Model
+{
+    protected $fillable = ['user_id', 'type', 'amount', 'description'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+
+=== app/Models/Shop.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class Shop extends Authenticatable
+{
+
+    protected $fillable = [
+        'name',
+        'category',
+        'owner_name',
+        'phone',
+        'email',
+        'address',
+        'aadhar_number',
+        'pan_number',
+        'aadhar_image_path',
+        'pan_image_path',
+        'latitude',
+        'longitude',
+        'commission_rate',
+        'is_active',
+        // 'password', // ✅ Important if you allow password login
+    ];
+    
+    protected $hidden = ['password', 'remember_token'];
+
+    public function transactions()
+    {
+        return $this->hasMany(ShopTransaction::class);
+    }
+}
+
+
+=== app/Models/CashbackWallet.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CashbackWallet extends Model
+{
+    protected $fillable = ['user_id',  'cashback_amount'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+
+}
+
+
+=== app/Models/Management.php ===
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class Management extends Authenticatable
+{
+    use Notifiable;
+
+    protected $guard = 'management';
+
+    protected $fillable = [
+        'name', 'email', 'phone', 'password', 'is_active'
+    ];
+
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+}

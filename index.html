@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f2f5; /* Light gray background */
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        video {
+            width: 100%;
+            max-width: 400px; /* Limit video width */
+            height: auto;
+            border-radius: 0.75rem; /* Rounded corners for video */
+            background-color: #000;
+            display: block; /* Ensure no extra space below video */
+            margin: 0 auto;
+        }
+        canvas {
+            display: none; /* Canvas is used for processing, not display */
+        }
+        .result-box {
+            background-color: #e2e8f0; /* Lighter gray for result box */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all; /* Break long words */
+            text-align: left;
+            color: #334155; /* Darker text color */
+            font-weight: 500;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            max-width: 90%;
+            text-align: center;
+        }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        .button-primary {
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* Gradient background */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+        }
+        .button-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-gray-800">QR Code Scanner</h1>
+
+        <!-- Video element to display camera feed -->
+        <video id="video" class="rounded-lg shadow-md" autoplay playsinline></video>
+
+        <!-- Canvas for processing video frames (hidden) -->
+        <canvas id="canvas"></canvas>
+
+        <!-- Display area for scanned QR code data -->
+        <div id="result" class="result-box text-gray-700 font-semibold">
+            Scan a QR code to see the result here.
+        </div>
+
+        <!-- Button to start/stop scanning -->
+        <button id="startButton" class="button-primary">Start Scanning</button>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageOverlay" class="message-box-overlay"></div>
+    <div id="messageBox" class="message-box">
+        <p id="messageText" class="text-gray-800 text-lg"></p>
+        <button id="messageCloseButton" class="button-primary">OK</button>
+    </div>
+
+    <!-- jsQR library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <script>
+        // Get references to HTML elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultDiv = document.getElementById('result');
+        const startButton = document.getElementById('startButton');
+        const messageBox = document.getElementById('messageBox');
+        const messageOverlay = document.getElementById('messageOverlay');
+        const messageText = document.getElementById('messageText');
+        const messageCloseButton = document.getElementById('messageCloseButton');
+        const ctx = canvas.getContext('2d');
+
+        let scanning = false; // Flag to control scanning state
+        let stream = null; // To hold the camera stream
+
+        /**
+         * Displays a custom message box instead of alert().
+         * @param {string} message - The message to display.
+         */
+        function showMessageBox(message) {
+            messageText.textContent = message;
+            messageBox.style.display = 'flex';
+            messageOverlay.style.display = 'block';
+        }
+
+        /**
+         * Hides the custom message box.
+         */
+        function hideMessageBox() {
+            messageBox.style.display = 'none';
+            messageOverlay.style.display = 'none';
+        }
+
+        // Event listener for the message box close button
+        messageCloseButton.addEventListener('click', hideMessageBox);
+
+        /**
+         * Starts the QR code scanning process.
+         * Requests camera access and begins drawing video frames to canvas.
+         */
+        async function startScanning() {
+            try {
+                // Request access to the user's camera
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true); // Required for iOS
+                video.play(); // Start playing the video stream
+
+                // Once video metadata is loaded, set canvas dimensions and start scanning loop
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    scanning = true;
+                    startButton.textContent = 'Stop Scanning';
+                    resultDiv.textContent = 'Scanning...';
+                    requestAnimationFrame(tick); // Start the animation loop
+                });
+
+            } catch (err) {
+                // Handle errors if camera access is denied or not available
+                console.error("Error accessing camera: ", err);
+                if (err.name === 'NotAllowedError') {
+                    showMessageBox("Camera access denied. Please allow camera access in your browser settings.");
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    showMessageBox("No camera found. Please ensure a camera is connected and enabled.");
+                } else {
+                    showMessageBox(`Error: ${err.message}. Could not start camera.`);
+                }
+                scanning = false;
+                startButton.textContent = 'Start Scanning';
+            }
+        }
+
+        /**
+         * Stops the QR code scanning process.
+         * Stops the camera stream and resets the UI.
+         */
+        function stopScanning() {
+            scanning = false;
+            startButton.textContent = 'Start Scanning';
+            resultDiv.textContent = 'Scan a QR code to see the result here.';
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop()); // Stop all camera tracks
+                video.srcObject = null; // Clear video source
+                stream = null;
+            }
+        }
+
+        /**
+         * The main animation loop for scanning QR codes.
+         * Draws video frames to canvas and attempts to decode QR codes.
+         */
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                // Set canvas dimensions to match video
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+
+                // Draw the video frame onto the canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Get image data from the canvas
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Use jsQR to find and decode QR codes
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert", // Try not to invert colors
+                });
+
+                if (code) {
+                    // QR code found! Display the data and stop scanning
+                    resultDiv.textContent = `Scanned: ${code.data}`;
+                    stopScanning(); // Stop scanning after a successful scan
+                }
+            }
+
+            // Continue the loop if scanning is still active
+            if (scanning) {
+                requestAnimationFrame(tick);
+            }
+        }
+
+        // Event listener for the start/stop button
+        startButton.addEventListener('click', () => {
+            if (scanning) {
+                stopScanning();
+            } else {
+                startScanning();
+            }
+        });
+
+        // Ensure the video is paused and result cleared when the page loads
+        window.onload = () => {
+            video.pause();
+            resultDiv.textContent = 'Scan a QR code to see the result here.';
+        };
+    </script>
+</body>
+</html>
