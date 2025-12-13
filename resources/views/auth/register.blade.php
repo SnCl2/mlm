@@ -3,7 +3,24 @@
 @section('content')
 <div class="bg-gray-100 flex items-center justify-center min-h-screen">
   <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-    <h2 class="text-2xl font-bold text-center text-orange-500 mb-6">Digital Care MLM</h2>
+    <h2 class="text-2xl font-bold text-center text-orange-500 mb-6">Dream Life Management</h2>
+
+    @if($errors->any())
+      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-800 font-semibold mb-2">Please fix the following errors:</p>
+        <ul class="list-disc list-inside text-sm text-red-700">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
+
+    @if(session('error'))
+      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-800 font-semibold">{{ session('error') }}</p>
+      </div>
+    @endif
 
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
       @csrf
@@ -29,45 +46,59 @@
       {{-- Confirm Email --}}
       <div>
         <label class="block mb-1 text-sm font-semibold text-gray-700">Confirm Email Address</label>
-        <input name="email_confirmation" type="email" placeholder="example@mail.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <input name="email_confirmation" type="email" placeholder="example@mail.com" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 @error('email_confirmation') border-red-500 @enderror">
+        @error('email_confirmation')
+          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
       </div>
 
       {{-- Referral --}}
       <div>
-        <label class="block mb-1 text-sm font-semibold text-gray-700">Referral ID</label>
+        <label class="block mb-1 text-sm font-semibold text-gray-700">Referral ID <span class="text-red-500">*</span></label>
         <input 
           name="referred_by" 
           id="referred_by"
           type="text" 
           placeholder="Referral Code" 
           value="{{ old('referred_by', Auth::check() ? Auth::user()->referral_code : request('ref')) }}" 
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 @error('referred_by') border-red-500 @enderror"
         >
         <div id="referred-name" class="mt-1 text-sm"></div>
+        @error('referred_by')
+          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
       </div>
 
       {{-- Placement --}}
       <div>
-        <label class="block mb-1 text-sm font-semibold text-gray-700">Placement ID</label>
+        <label class="block mb-1 text-sm font-semibold text-gray-700">Placement ID <span class="text-red-500">*</span></label>
         <input 
           name="place_under" 
           id="place_under"
           type="text" 
-          placeholder="User ID" 
+          placeholder="Referral Code" 
           value="{{ old('place_under', request('place_under')) }}" 
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 @error('place_under') border-red-500 @enderror"
         >
         <div id="placement-name" class="mt-1 text-sm"></div>
+        @error('place_under')
+          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
       </div>
 
       {{-- Placement Side --}}
       <div>
-        <label class="block mb-1 text-sm font-semibold text-gray-700">Placement Side</label>
-        <select name="side" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <label class="block mb-1 text-sm font-semibold text-gray-700">Placement Side <span class="text-red-500">*</span></label>
+        <select name="side" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
           <option value="">Select Side</option>
-          <option value="left" {{ old('side',  request('position')) == 'left' ? 'selected' : '' }}>Left</option>
-          <option value="right" {{ old('side', request('position')) == 'right' ? 'selected' : '' }}>Right</option>
+          <option value="left" {{ old('side', request('side', request('position'))) == 'left' ? 'selected' : '' }}>Left</option>
+          <option value="right" {{ old('side', request('side', request('position'))) == 'right' ? 'selected' : '' }}>Right</option>
         </select>
+        @error('side')
+          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
       </div>
 
       {{-- Product Selection --}}

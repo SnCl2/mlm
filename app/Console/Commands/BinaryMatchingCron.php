@@ -4,7 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\BinaryNode;
-use App\Models\BinaryWallet;
+use App\Models\BinaryIncome;
+use App\Models\MainWallet;
 use App\Models\IncomeSetting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -32,10 +33,19 @@ class BinaryMatchingCron extends Command
             if ($matchCount > 0) {
                 $matchAmount = $matchCount * $incomePerMatch;
 
-                DB::transaction(function () use ($node, $matchCount, $matchAmount, $pointsPerMatch) {
-                    $wallet = BinaryWallet::firstOrCreate(['user_id' => $node->user_id]);
-                    $wallet->matching_amount += $matchAmount;
-                    $wallet->save();
+                DB::transaction(function () use ($node, $matchCount, $matchAmount, $pointsPerMatch, $incomePerMatch) {
+                    // Create income record
+                    BinaryIncome::create([
+                        'user_id' => $node->user_id,
+                        'amount' => $matchAmount,
+                        'matches' => $matchCount,
+                        'description' => "Binary matching income: {$matchCount} matches × ₹{$incomePerMatch}",
+                    ]);
+                    
+                    // Add to main wallet
+                    $mainWallet = MainWallet::firstOrCreate(['user_id' => $node->user_id], ['balance' => 0]);
+                    $mainWallet->balance += $matchAmount;
+                    $mainWallet->save();
 
                     $node->left_points -= $matchCount * $pointsPerMatch;
                     $node->right_points -= $matchCount * $pointsPerMatch;

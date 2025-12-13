@@ -77,6 +77,26 @@ class User extends Authenticatable
         return $this->hasOne(BinaryWallet::class);
     }
     
+    public function mainWallet()
+    {
+        return $this->hasOne(MainWallet::class);
+    }
+    
+    public function referralIncomes()
+    {
+        return $this->hasMany(ReferralIncome::class);
+    }
+    
+    public function binaryIncomes()
+    {
+        return $this->hasMany(BinaryIncome::class);
+    }
+    
+    public function cashbackIncomes()
+    {
+        return $this->hasMany(CashbackIncome::class);
+    }
+    
     public function withdrawals()
     {
         return $this->hasMany(Withdrawal::class);
@@ -171,15 +191,27 @@ class User extends Authenticatable
     
     public function getTotalWithdrawableBalance()
     {
-        $cashback = $this->cashbackWallets()->sum('cashback_amount');
-        $referral = $this->referralWallets()->sum('amount');
-        $binary   = $this->binaryWallet ? $this->binaryWallet->matching : 0;
+        $mainWallet = $this->mainWallet;
+        $mainBalance = $mainWallet ? $mainWallet->balance : 0;
+        
+        // Income totals (for display purposes)
+        $referralIncome = $this->referralIncomes()->sum('amount');
+        $binaryIncome = $this->binaryIncomes()->sum('amount');
+        $cashbackIncome = $this->cashbackIncomes()->sum('amount');
+        
+        // Withdrawal stats
+        $totalWithdrawn = $this->withdrawals()->where('status', 'approved')->sum('total_amount');
+        $pendingWithdrawn = $this->withdrawals()->where('status', 'pending')->sum('total_amount');
     
         return [
-            'cashback' => $cashback,
-            'referral' => $referral,
-            'binary'   => $binary,
-            'total'    => $cashback + $referral + $binary,
+            'main_wallet' => $mainBalance,
+            'referral_income' => $referralIncome,
+            'binary_income' => $binaryIncome,
+            'cashback_income' => $cashbackIncome,
+            'total_income' => $referralIncome + $binaryIncome + $cashbackIncome,
+            'total_withdrawn' => $totalWithdrawn,
+            'pending_withdrawn' => $pendingWithdrawn,
+            'available_balance' => $mainBalance - $pendingWithdrawn,
         ];
     }
 

@@ -17,13 +17,19 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
     
-        // Wallets
-        $referral = $user->referralWallets()->sum('amount');
-        $binary = optional($user->binaryWallet)->matching_amount ?? 0;
-        $cashback = $user->cashbackWallets()->sum('cashback_amount');
+        // Get wallet and income data
+        $balanceData = $user->getTotalWithdrawableBalance();
+        
+        $mainWallet = $balanceData['main_wallet'];
+        $referralIncome = $balanceData['referral_income'];
+        $binaryIncome = $balanceData['binary_income'];
+        $cashbackIncome = $balanceData['cashback_income'];
+        $totalWithdrawn = $balanceData['total_withdrawn'];
+        $pendingWithdrawn = $balanceData['pending_withdrawn'];
+        $availableBalance = $balanceData['available_balance'];
     
         // Binary Points
-        $binaryNode = $user->binaryNode; // Assuming the relationship is defined
+        $binaryNode = $user->binaryNode;
         $leftPoints = optional($binaryNode)->left_points ?? 0;
         $rightPoints = optional($binaryNode)->right_points ?? 0;
         $leftPoints_C = optional($binaryNode)->cb_left ?? 0;
@@ -34,9 +40,11 @@ class DashboardController extends Controller
     
         return view('dashboard.dashboard_earnings', compact(
             'user',
-            'referral',
-            'binary',
-            'cashback',
+            'mainWallet',
+            'cashbackIncome',
+            'totalWithdrawn',
+            'pendingWithdrawn',
+            'availableBalance',
             'transactions',
             'leftPoints',
             'rightPoints',
@@ -86,17 +94,73 @@ class DashboardController extends Controller
             ->keyBy('user_id');
 
         // Step 4: Build parent-child map for quick lookup
-        $childrenMap = BinaryNode::whereIn('parent_id', $userIds)
-            ->get()
-            ->groupBy('parent_id')
+        // Get ALL children of nodes in the tree, even if child user isn't in userIds
+        $allChildNodes = BinaryNode::whereIn('parent_id', $userIds)->get();
+        
+        $childrenMap = $allChildNodes->groupBy('parent_id')
             ->map(function ($nodes) {
+                // If multiple nodes exist for same position, get the oldest one (first created)
+                // This handles data integrity issues where multiple children were added
+                // For display, we show the oldest child, but we'll load all children to ensure they're in the tree
+                $leftNodes = $nodes->where('position', 'left')->sortBy('id');
+                $rightNodes = $nodes->where('position', 'right')->sortBy('id');
+                
+                // Get the oldest child for each position (for tree structure)
+                $leftChild = $leftNodes->first();
+                $rightChild = $rightNodes->first();
+                
+                // Collect ALL child user IDs (even duplicates) to ensure they're loaded
+                $allChildUserIds = $nodes->pluck('user_id')->unique()->toArray();
+                
                 return [
-                    'left' => $nodes->where('position', 'left')->first(),
-                    'right' => $nodes->where('position', 'right')->first(),
+                    'left' => $leftChild, // Oldest left child for tree structure
+                    'right' => $rightChild, // Oldest right child for tree structure
+                    'all_children' => $allChildUserIds, // All children to ensure they're loaded
                 ];
             });
+        
+        // Also collect any child user IDs that weren't in the original collection
+        // This includes ALL children, even if there are duplicates in the same position
+        $childUserIds = $allChildNodes->pluck('user_id')
+            ->unique()
+            ->diff($userIds)
+            ->toArray();
+        
+        // Also get all children from the childrenMap to ensure we load them
+        foreach ($childrenMap as $parentId => $children) {
+            if (isset($children['all_children'])) {
+                foreach ($children['all_children'] as $childUserId) {
+                    if (!in_array($childUserId, $userIds) && !in_array($childUserId, $childUserIds)) {
+                        $childUserIds[] = $childUserId;
+                    }
+                }
+            }
+        }
+        
+        // If there are child users not in the collection, add them
+        if (!empty($childUserIds)) {
+            $additionalUsers = User::with(['binaryNode', 'kyc'])
+                ->whereIn('id', $childUserIds)
+                ->get()
+                ->keyBy('id');
+            $users = $users->merge($additionalUsers);
+            
+            $additionalBinaryNodes = BinaryNode::whereIn('user_id', $childUserIds)
+                ->get()
+                ->keyBy('user_id');
+            $binaryNodes = $binaryNodes->merge($additionalBinaryNodes);
+            
+            // Update userIds to include the new users for name cache
+            $userIds = array_merge($userIds, $childUserIds);
+        }
 
         // Step 5: Cache user names for referred_by and place_under
+        // Update userIds if we added more users
+        $finalUserIds = $userIds;
+        if (!empty($childUserIds)) {
+            $finalUserIds = array_merge($userIds, $childUserIds);
+        }
+        
         $referrerIds = $users->pluck('referred_by')->filter()->unique();
         $placeUnderIds = $users->pluck('place_under')->filter()->unique();
         $allRelatedIds = $referrerIds->merge($placeUnderIds)->unique();
@@ -140,12 +204,22 @@ class DashboardController extends Controller
             $userIds[] = $currentUserId;
 
             // Get children IDs directly from binary_nodes table
-            $children = BinaryNode::where('parent_id', $currentUserId)
-                ->pluck('user_id')
+            // If multiple children exist for same position, get the oldest one (first created)
+            // This handles data integrity issues where multiple children were added to same position
+            $childNodes = BinaryNode::where('parent_id', $currentUserId)
+                ->orderBy('id', 'asc') // Get oldest first
+                ->get()
+                ->groupBy('position')
+                ->map(function ($positionNodes) {
+                    // For each position, return the oldest node's user_id
+                    return $positionNodes->first()->user_id;
+                })
+                ->values()
+                ->filter()
                 ->toArray();
 
-            foreach ($children as $childId) {
-                if (!isset($visited[$childId])) {
+            foreach ($childNodes as $childId) {
+                if ($childId && !isset($visited[$childId])) {
                     $queue[] = [$childId, $depth + 1];
                 }
             }
@@ -229,6 +303,7 @@ class DashboardController extends Controller
         $binaryNode = $binaryNodes[$userId] ?? null;
         $children = $childrenMap[$userId] ?? ['left' => null, 'right' => null];
 
+        // Use the children from the map (which now includes all children from DB)
         $leftChildId = $children['left']?->user_id ?? null;
         $rightChildId = $children['right']?->user_id ?? null;
 

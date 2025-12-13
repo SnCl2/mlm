@@ -72,14 +72,26 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Handle position parameter (from tree modal) and map to side
+        if ($request->has('position') && !$request->has('side')) {
+            $request->merge(['side' => $request->position]);
+        }
+
         $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|string|email|max:255|unique:users',
-            'phone'       => 'nullable|string|max:15',
-            'place_under' => 'required|exists:users,referral_code',
-            'side'        => 'nullable|in:left,right',
-            'referred_by' => 'required|string|exists:users,referral_code',
-            'product_id'  => 'required|exists:products,id',
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|string|email|max:255|unique:users',
+            'email_confirmation' => 'required|same:email',
+            'phone'             => 'nullable|string|max:15',
+            'place_under'       => 'required|exists:users,referral_code',
+            'side'              => 'required|in:left,right',
+            'referred_by'       => 'required|string|exists:users,referral_code',
+            'product_id'        => 'required|exists:products,id',
+        ], [
+            'email_confirmation.same' => 'Email confirmation does not match.',
+            'place_under.exists' => 'The placement referral code does not exist.',
+            'referred_by.exists' => 'The referral code does not exist.',
+            'side.required' => 'Please select a placement side (Left or Right).',
+            'side.in' => 'Placement side must be either left or right.',
         ]);
     
         DB::beginTransaction();
@@ -87,7 +99,42 @@ class AuthController extends Controller
         try {
             // Find referrer by referral code
             $referrer = User::where('referral_code', $request->referred_by)->first();
+            if (!$referrer) {
+                throw new \Exception('Referrer not found with code: ' . $request->referred_by);
+            }
+
             $parent = User::where('referral_code', $request->place_under)->first();
+            if (!$parent) {
+                throw new \Exception('Parent user not found with code: ' . $request->place_under);
+            }
+
+            // Check if position is already taken
+            $existingNode = BinaryNode::where('parent_id', $parent->id)
+                ->where('position', $request->side)
+                ->first();
+            
+            if ($existingNode) {
+                // Get the user who occupies this position
+                $existingUser = User::find($existingNode->user_id);
+                $existingUserName = $existingUser ? $existingUser->name : 'Unknown User';
+                
+                // Check which side is available
+                $leftTaken = BinaryNode::where('parent_id', $parent->id)
+                    ->where('position', 'left')
+                    ->exists();
+                $rightTaken = BinaryNode::where('parent_id', $parent->id)
+                    ->where('position', 'right')
+                    ->exists();
+                
+                $availableSide = !$leftTaken ? 'left' : (!$rightTaken ? 'right' : null);
+                
+                if ($availableSide) {
+                    throw new \Exception("Position '{$request->side}' is already taken by '{$existingUserName}'. Please choose the '{$availableSide}' side instead.");
+                } else {
+                    throw new \Exception("Both positions under this parent are already taken. Please choose a different parent.");
+                }
+            }
+
             // Generate a secure password
             $generatedPassword = Str::random(10);
     
@@ -97,8 +144,8 @@ class AuthController extends Controller
                 'email'           => $request->email,
                 'phone'           => $request->phone,
                 'password'        => Hash::make($generatedPassword),
-                'referred_by'     => $referrer?->id,
-                'place_under'     => $parent?->id,
+                'referred_by'     => $referrer->id,
+                'place_under'     => $parent->id,
                 'placement_leg'   => $request->side,
                 'is_kyc_verified' => false,
                 'is_active'       => false,
@@ -106,29 +153,31 @@ class AuthController extends Controller
             ]);
     
             // Generate referral code after getting ID
-            $user->referral_code = 'DCM_' . str_pad($user->id, 3, '0', STR_PAD_LEFT);
+            $user->referral_code = 'DLM' . $user->id  . str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $user->save();
     
-            // Create binary node if needed
-            if ($request->place_under && $request->side) {
-                BinaryNode::create([
-                    'user_id'   => $user->id,
-                    'parent_id' => $parent?->id,
-                    'position'  => $request->side,
-                ]);
-            }
+            // Create binary node - this is required when place_under and side are provided
+            BinaryNode::create([
+                'user_id'   => $user->id,
+                'parent_id' => $parent->id,
+                'position'  => $request->side,
+                'left_points' => 0,
+                'right_points' => 0,
+                'cb_left' => 0,
+                'cb_right' => 0,
+            ]);
     
             // Send email
             Mail::raw(
-                "Welcome to Digital Care MLM!\n\n" .
+                "Welcome to Dream Life Management!\n\n" .
                 "Your account has been successfully created.\n" .
                 "Referral Code: {$user->referral_code}\n" .
                 "Password: {$generatedPassword}\n\n" .
                 "Please login and change your password.\n" .
-                "Click the link to login: https://dcmlm.in/login",
+                "Click the link to login: https://dreamlifemanagement.in/login",
                 function ($message) use ($user) {
                     $message->to($user->email)
-                            ->subject('Welcome to Digital Care MLM');
+                            ->subject('Welcome to Dream Life Management');
                 }
             );
 
@@ -176,7 +225,7 @@ class AuthController extends Controller
                 "Hello {$user->name},\n\nYour OTP for password reset is: {$otp}\nIt is valid for 10 minutes.",
                 function ($message) use ($user) {
                     $message->to($user->email)
-                            ->subject('OTP for Password Reset - Digital Care MLM');
+                            ->subject('OTP for Password Reset - Dream Life Management');
                 }
             );
             session()->flash('otp_sent', true);

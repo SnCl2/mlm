@@ -21,13 +21,10 @@
 
     @php
         $wallets = [
-            ['title' => 'Referral Wallet', 'amount' => $referral, 'icon' => 'fa-user-plus', 'color' => 'cyan-300', 'border' => 'var(--primary)', 'text' => 'var(--primary)'],
-            ['title' => 'Binary Wallet', 'amount' => $binary, 'icon' => 'fa-code-branch', 'color' => 'blue-300', 'border' => 'blue-500', 'text' => 'blue-500'],
-            ['title' => 'Cashback Wallet', 'amount' => $cashback, 'icon' => 'fa-percentage', 'color' => 'green-300', 'border' => 'green-500', 'text' => 'green-500'],
-            ['title' => 'Left Points', 'amount' => $leftPoints, 'icon' => 'fa-arrow-left', 'color' => 'indigo-300', 'border' => 'indigo-500', 'text' => 'indigo-500'],
-            ['title' => 'Right Points', 'amount' => $rightPoints, 'icon' => 'fa-arrow-right', 'color' => 'purple-300', 'border' => 'purple-500', 'text' => 'purple-500'],
-            ['title' => 'Left Cash Points', 'amount' => $leftPoints_C, 'icon' => 'fa-arrow-left', 'color' => 'indigo-300', 'border' => 'indigo-500', 'text' => 'indigo-500'],
-            ['title' => 'Right Cash Points', 'amount' => $rightPoints_C, 'icon' => 'fa-arrow-right', 'color' => 'purple-300', 'border' => 'purple-500', 'text' => 'purple-500'],
+            ['title' => 'Main Wallet', 'amount' => $mainWallet, 'icon' => 'fa-wallet', 'color' => 'cyan-300', 'border' => 'var(--primary)', 'text' => 'var(--primary)', 'description' => 'Total balance'],
+            ['title' => 'Cashback Income', 'amount' => $cashbackIncome, 'icon' => 'fa-percentage', 'color' => 'green-300', 'border' => 'green-500', 'text' => 'green-500', 'description' => 'Total earned'],
+            ['title' => 'Total Withdrawal', 'amount' => $totalWithdrawn, 'icon' => 'fa-money-bill-wave', 'color' => 'yellow-300', 'border' => 'yellow-500', 'text' => 'yellow-500', 'description' => 'Approved'],
+            ['title' => 'Pending Withdrawal', 'amount' => $pendingWithdrawn, 'icon' => 'fa-clock', 'color' => 'orange-300', 'border' => 'orange-500', 'text' => 'orange-500', 'description' => 'Awaiting approval'],
         ];
     @endphp
     
@@ -39,8 +36,55 @@
                 <i class="fas {{ $wallet['icon'] }} text-{{ $wallet['color'] }}"></i>
             </div>
             <p class="text-2xl font-bold text-{{ $wallet['text'] }}">₹{{ number_format($wallet['amount'], 2) }}</p>
+            @if(isset($wallet['description']))
+            <p class="text-xs text-gray-500 mt-1">{{ $wallet['description'] }}</p>
+            @endif
         </div>
         @endforeach
+    </div>
+    
+    <!-- Available Balance Card (Highlighted) -->
+    <div class="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 p-6 rounded-xl shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-1">Available Balance</h3>
+                <p class="text-3xl font-bold text-white">₹{{ number_format($availableBalance, 2) }}</p>
+                <p class="text-sm text-cyan-100 mt-1">Available for withdrawal</p>
+            </div>
+            <i class="fas fa-check-circle text-white text-4xl opacity-80"></i>
+        </div>
+    </div>
+    
+    <!-- Binary Points Section -->
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-indigo-500">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-600">Left Points</h3>
+                <i class="fas fa-arrow-left text-indigo-300"></i>
+            </div>
+            <p class="text-xl font-bold text-indigo-500">{{ number_format($leftPoints, 0) }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-600">Right Points</h3>
+                <i class="fas fa-arrow-right text-purple-300"></i>
+            </div>
+            <p class="text-xl font-bold text-purple-500">{{ number_format($rightPoints, 0) }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-indigo-500">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-600">Left Cash Points</h3>
+                <i class="fas fa-arrow-left text-indigo-300"></i>
+            </div>
+            <p class="text-xl font-bold text-indigo-500">{{ number_format($leftPoints_C, 0) }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-600">Right Cash Points</h3>
+                <i class="fas fa-arrow-right text-purple-300"></i>
+            </div>
+            <p class="text-xl font-bold text-purple-500">{{ number_format($rightPoints_C, 0) }}</p>
+        </div>
     </div>
 
 </section>
@@ -57,31 +101,31 @@
                 </div>
             @endif
         @endforeach
+        <!-- Available Balance Info -->
+        <div class="mb-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Available Balance</p>
+                    <p class="text-2xl font-bold text-cyan-600">₹{{ number_format($availableBalance, 2) }}</p>
+                </div>
+                <i class="fas fa-wallet text-cyan-400 text-3xl"></i>
+            </div>
+        </div>
+
         <!-- Form -->
         <form method="POST" action="{{ route('withdrawal.request') }}" class="space-y-5">
             @csrf
 
-            <div class="grid sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Cashback Wallet</label>
-                    <input type="number" name="cashback_amount" min="0" step="0.01"
-                           class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                           placeholder="₹0.00">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Referral Wallet</label>
-                    <input type="number" name="referral_amount" min="0" step="0.01"
-                           class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                           placeholder="₹0.00">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Binary Wallet</label>
-                    <input type="number" name="binary_amount" min="0" step="0.01"
-                           class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                           placeholder="₹0.00">
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Withdrawal Amount <span class="text-red-500">*</span>
+                    <span class="text-xs text-gray-500 font-normal">(Minimum: ₹500)</span>
+                </label>
+                <input type="number" name="amount" min="500" step="0.01" max="{{ $availableBalance }}"
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                       placeholder="Enter amount (₹500 minimum)"
+                       required>
+                <p class="text-xs text-gray-500 mt-1">Maximum: ₹{{ number_format($availableBalance, 2) }}</p>
             </div>
 
             <div>
@@ -94,7 +138,7 @@
             <div>
                 <button type="submit"
                         class="w-full sm:w-auto bg-cyan-500 text-white px-6 py-2 rounded hover:bg-cyan-600 transition">
-                    Submit Withdrawal Request
+                    <i class="fas fa-paper-plane mr-2"></i>Submit Withdrawal Request
                 </button>
             </div>
         </form>

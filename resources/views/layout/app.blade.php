@@ -45,6 +45,22 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
       }
 
+      /* Colorful Sidebar Menu Items */
+      .menu-dashboard { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      .menu-tree { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+      .menu-team { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+      .menu-wallet { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+      .menu-notice { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+      .menu-kyc { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+      .menu-referral { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+      .menu-shop { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+      .menu-pin { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+      
+      .menu-item-active {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transform: scale(1.02);
+      }
+
       .mobile-menu {
         transition: transform 0.3s ease;
       }
@@ -56,9 +72,35 @@
       .mobile-menu:not(.hidden) {
         transform: translateX(0);
       }
-      aside {
-      overflow-y: auto;
-    }
+      @media (min-width: 768px) {
+        aside {
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          max-height: 100vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+      }
+      
+      aside::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      aside::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+      }
+      
+      aside::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.5);
+        border-radius: 10px;
+      }
+      
+      aside::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.7);
+      }
 
     </style>
 
@@ -68,9 +110,9 @@
 
   <body class="flex min-h-screen bg-gray-50">
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-lg p-6 space-y-8 fixed md:relative z-10 h-full hidden md:flex flex-col justify-between border-r border-gray-100">
+    <aside class="w-64 shadow-lg p-6 fixed z-10 h-full hidden md:flex flex-col border-r border-purple-300" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 25%, #fce7f3 50%, #fef3c7 75%, #dbeafe 100%);">
 
-      <div>
+      <div class="flex-1 overflow-y-auto pr-2 space-y-6">
         <!-- Logo -->
         <div class="flex items-center space-x-2 mb-6">
           <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
@@ -82,51 +124,51 @@
         <!-- Nav Links -->
         <nav class="flex flex-col space-y-3">
           @if(auth()->check() && !auth()->guard('management')->check() && !auth()->guard('shop')->check())
-            <a href="{{ route('showEarnings') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('showEarnings') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }} font-medium">
+            <a href="{{ route('showEarnings') }}" class="sidebar-link menu-dashboard flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('showEarnings') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} font-medium shadow-md">
               <i class="fas fa-home w-5 text-center"></i>
               <span>Dashboard</span>
             </a>
-            <a href="{{ route('tree') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('tree') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+            <a href="{{ route('tree') }}" class="sidebar-link menu-tree flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('tree') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
               <i class="fas fa-project-diagram w-5 text-center"></i>
               <span>My Tree</span>
             </a>
             
-            <a href="{{ route('table') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('table') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+            <a href="{{ route('table') }}" class="sidebar-link menu-team flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('table') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
               <i class="fas fa-users w-5 text-center"></i>
-              <span> My Team</span>
+              <span>MY ALL TEAM</span>
             </a>
 
-            <a href="{{ route('cashback') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('cashback') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+            <a href="{{ route('cashback') }}" class="sidebar-link menu-wallet flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('cashback') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
               <i class="fas fa-money-bill-wave w-5 text-center"></i>
-              <span>Cashback</span>
+              <span>MY SHOPPING WALLET</span>
             </a>
             
-            <a href="{{ route('notifications.index') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('notifications.*') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+            <a href="{{ route('notifications.index') }}" class="sidebar-link menu-notice flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('notifications.*') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
               <i class="fas fa-bullhorn w-5 text-center"></i>
               <span>Notice Board</span>
             </a>
             @if(!auth()->user()->kyc)
-              <a href="{{ route('kyc.create') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+              <a href="{{ route('kyc.create') }}" class="sidebar-link menu-kyc flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
                 <i class="fas fa-file-alt w-5 text-center"></i>
                 <span>Submit KYC</span>
               </a>
             @else
-              <a href="{{ route('kyc.edit') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
-                <i class="fas fa-file-check w-5 text-center"></i>
-                <span>Update KYC</span>
+              <a href="{{ route('kyc.edit') }}" class="sidebar-link menu-kyc flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
+                <i class="fas fa-user-shield w-5 text-center"></i>
+                <span>KYC MANAGER</span>
               </a>
-              <a href="{{ route('register') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('register') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+              <a href="{{ route('register') }}" class="sidebar-link menu-referral flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('register') ? 'menu-item-active text-gray-800' : 'text-gray-800 hover:opacity-90' }} shadow-md">
                   <i class="fas fa-user-plus w-5 text-center"></i>
-                  <span>Refer and Earn</span>
+                  <span>REFERRAL FORM</span>
                 </a>
-              <a href="{{ route('shop.create') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('shop.create') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+              <a href="{{ route('shop.create') }}" class="sidebar-link menu-shop flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('shop.create') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
                 <i class="fas fa-store w-5 text-center"></i>
-                <span>Create Shop</span>
+                <span>NEW SHOP</span>
               </a>
                 <a href="{{ route('activation-keys.user.index') }}"
-                   class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('activation-keys.user.index') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+                   class="sidebar-link menu-pin flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('activation-keys.user.index') ? 'menu-item-active text-gray-800' : 'text-gray-800 hover:opacity-90' }} shadow-md">
                    <i class="fas fa-lock w-5 text-center"></i>
-                   <span>PIN</span>
+                   <span>E-PIN</span>
                 </a>
             @endif
 
@@ -209,10 +251,9 @@
             </div>
           @endif
         </nav>
-      </div>
     
-      <!-- Bottom Section -->
-      <div class="mt-auto">
+        <!-- Bottom Section -->
+        <div class="mt-6 pt-6 border-t border-purple-200">
         <!-- User Info -->
         <div class="flex items-center space-x-3 p-3 rounded-lg bg-gray-100 text-gray-600 mb-3">
           <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center">
@@ -293,7 +334,7 @@
 
 
     <!-- Mobile Sidebar -->
-    <div id="mobileMenu" class="mobile-menu fixed inset-0 bg-white p-6 z-30 hidden md:hidden">
+    <div id="mobileMenu" class="mobile-menu fixed inset-0 p-6 z-30 hidden md:hidden" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 25%, #fce7f3 50%, #fef3c7 75%, #dbeafe 100%);">
       <div class="flex justify-between items-center mb-8">
         <div class="flex items-center space-x-2">
           <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
@@ -308,49 +349,49 @@
 
       <nav class="flex flex-col space-y-4">
         <!-- User Dashboard Links -->
-        <a href="{{ route('showEarnings') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('showEarnings') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }} font-medium">
+        <a href="{{ route('showEarnings') }}" class="sidebar-link menu-dashboard flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('showEarnings') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} font-medium shadow-md">
           <i class="fas fa-home w-5 text-center"></i>
           <span>Earnings</span>
         </a>
 
-        <a href="{{ route('tree') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('tree') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        <a href="{{ route('tree') }}" class="sidebar-link menu-tree flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('tree') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
           <i class="fas fa-project-diagram w-5 text-center"></i>
           <span>Referral Tree</span>
         </a>
         
-        <a href="{{ route('table') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('table') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        <a href="{{ route('table') }}" class="sidebar-link menu-team flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('table') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
           <i class="fas fa-users w-5 text-center"></i>
-          <span> My Team</span>
+          <span>MY ALL TEAM</span>
         </a>
 
-        <a href="{{ route('cashback') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('cashback') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        <a href="{{ route('cashback') }}" class="sidebar-link menu-wallet flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('cashback') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
           <i class="fas fa-money-bill-wave w-5 text-center"></i>
-          <span>Cashback</span>
+          <span>MY SHOPPING WALLET</span>
         </a>
 
         <!-- KYC Section -->
         @if(auth()->check() && !auth()->user()->kyc)
-          <a href="{{ route('kyc.create') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+          <a href="{{ route('kyc.create') }}" class="sidebar-link menu-kyc flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
             <i class="fas fa-file-alt w-5 text-center"></i>
             <span>Submit KYC</span>
           </a>
         @elseif(auth()->check() && auth()->user()->kyc)
-          <a href="{{ route('kyc.edit') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
-            <i class="fas fa-file-check w-5 text-center"></i>
-            <span>KYC Update</span>
+          <a href="{{ route('kyc.edit') }}" class="sidebar-link menu-kyc flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('kyc.*') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
+            <i class="fas fa-user-shield w-5 text-center"></i>
+            <span>KYC MANAGER</span>
           </a>
-        <a href="{{ route('register') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('register') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        <a href="{{ route('register') }}" class="sidebar-link menu-referral flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('register') ? 'menu-item-active text-gray-800' : 'text-gray-800 hover:opacity-90' }} shadow-md">
         <i class="fas fa-user-plus w-5 text-center"></i>
-        <span>Refer and Earn</span>
+        <span>REFERRAL FORM</span>
         </a>
-        <a href="{{ route('shop.create') }}" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('shop.create') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        <a href="{{ route('shop.create') }}" class="sidebar-link menu-shop flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('shop.create') ? 'menu-item-active text-white' : 'text-white hover:opacity-90' }} shadow-md">
           <i class="fas fa-store w-5 text-center"></i>
-          <span>Create Shop</span>
+          <span>NEW SHOP</span>
         </a>
         <a href="{{ route('activation-keys.user.index') }}"
-        class="sidebar-link flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('activation-keys.user.index') ? 'bg-cyan-50 text-[var(--primary)]' : 'text-gray-600 hover:bg-cyan-50 hover:text-[var(--primary)]' }}">
+        class="sidebar-link menu-pin flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('activation-keys.user.index') ? 'menu-item-active text-gray-800' : 'text-gray-800 hover:opacity-90' }} shadow-md">
         <i class="fas fa-lock w-5 text-center"></i>
-        <span>My Activation Keys</span>
+        <span>E-PIN</span>
         </a>
         @endif
 
@@ -460,7 +501,7 @@
     </div>
     
     <!-- Main Content -->
-    <main class="flex-1 p-4 md:p-6 md:ml-10 pt-16 md:pt-6">
+    <main class="flex-1 p-4 md:p-6 md:ml-64 pt-16 md:pt-6">
         {{-- Validation Errors --}}
         @if ($errors->any())
           <div class="bg-red-100 text-red-700 p-3 rounded mb-4">

@@ -4,15 +4,43 @@
 
 @push('styles')
 <style>
+    .tree-container-wrapper {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
     .tree-container {
         width: 100%;
         height: 80vh;
         min-height: 600px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
         overflow: auto;
         position: relative;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .tree-container::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    .tree-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 6px;
+    }
+
+    .tree-container::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 6px;
+    }
+
+    .tree-container::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     }
 
     .node {
@@ -21,8 +49,16 @@
     }
 
     .node:hover {
-        opacity: 0.8;
-        transform: scale(1.05);
+        opacity: 0.9;
+        transform: scale(1.08);
+    }
+
+    .node:hover .node-rect.active {
+        filter: drop-shadow(0 6px 12px rgba(34, 197, 94, 0.5));
+    }
+
+    .node:hover .node-rect.vacant {
+        filter: drop-shadow(0 6px 12px rgba(59, 130, 246, 0.5));
     }
 
     .node-rect {
@@ -37,6 +73,7 @@
     .node-rect.active {
         fill: #22c55e;
         stroke: #16a34a;
+        filter: drop-shadow(0 4px 6px rgba(34, 197, 94, 0.3));
     }
 
     .node-rect.inactive {
@@ -48,6 +85,14 @@
         fill: #3b82f6;
         stroke: #2563eb;
         stroke-dasharray: 5,5;
+        filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.3));
+        cursor: pointer;
+    }
+
+    .node-rect.vacant:hover {
+        fill: #2563eb;
+        stroke: #1d4ed8;
+        transform: scale(1.05);
     }
 
     .node-text {
@@ -180,8 +225,10 @@
         </div>
     </div>
 
-    <!-- Tree Container -->
-    <div class="tree-container" id="tree-container"></div>
+    <!-- Tree Container - Enhanced Styling -->
+    <div class="tree-container-wrapper">
+        <div class="tree-container" id="tree-container"></div>
+    </div>
 
     <!-- Legend -->
     <div class="legend">
@@ -197,6 +244,53 @@
             <div class="legend-color vacant"></div>
             <span class="text-sm">Vacant Position</span>
         </div>
+        <div class="legend-item ml-4 pl-4 border-l border-gray-300">
+            <span class="text-xs text-gray-600">
+                <i class="fas fa-info-circle mr-1"></i>
+                Click vacant to register | Right-click node to add user
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="add-user-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Add User Under <span id="parent-name-modal"></span></h2>
+            <button onclick="closeAddUserModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form action="{{ route('register') }}" method="GET" id="add-user-form">
+            <input type="hidden" name="place_under" id="modal-place-under">
+            <input type="hidden" name="side" id="modal-position">
+            <input type="hidden" name="referred_by" value="{{ Auth::user()->referral_code }}">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Parent User</label>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-800" id="parent-info-display"></p>
+                    <p class="text-xs text-gray-500 mt-1" id="parent-code-display"></p>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-800" id="position-display"></p>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition-all">
+                    <i class="fas fa-user-plus mr-2"></i> Continue to Registration
+                </button>
+                <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
@@ -286,8 +380,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 is_active: false,
                 position: 'left',
                 parent: d3Node,
-                children: [],
+                parent_name: d3Node.name || 'Unknown',
                 parent_referral_code: d3Node.referral_code || '',
+                children: [],
                 is_vacant: true
             });
         }
@@ -305,8 +400,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 is_active: false,
                 position: 'right',
                 parent: d3Node,
-                children: [],
+                parent_name: d3Node.name || 'Unknown',
                 parent_referral_code: d3Node.referral_code || '',
+                children: [],
                 is_vacant: true
             });
         }
@@ -377,14 +473,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (d.data.is_vacant) return '#2563eb';
             return d.data.is_active ? '#16a34a' : '#dc2626';
         })
-        .style('stroke-width', d => d.data.is_vacant ? '2px' : '2px')
+        .style('stroke-width', d => d.data.is_vacant ? '2px' : '3px')
         .style('stroke-dasharray', d => d.data.is_vacant ? '5,5' : 'none')
+        .attr('title', d => {
+            if (d.data.is_vacant) return 'Click to register a new user here';
+            return `Right-click or Ctrl+Click to add user under ${d.data.name}`;
+        })
         .on('click', function(event, d) {
             if (d.data.is_vacant) {
-                const url = `{{ route('register') }}?place_under=${d.data.parent_referral_code}&position=${d.data.position}`;
-                window.location.href = url;
+                openAddUserModal(d.data);
             } else {
-                showNodeInfo(d.data);
+                // Show context menu or allow adding user under this node
+                if (event.ctrlKey || event.metaKey) {
+                    // Ctrl/Cmd + Click to add user under this node
+                    openAddUserUnderNode(d);
+                } else {
+                    showNodeInfo(d.data);
+                }
+            }
+        })
+        .on('contextmenu', function(event, d) {
+            event.preventDefault();
+            if (!d.data.is_vacant) {
+                openAddUserUnderNode(d);
             }
         });
 
@@ -431,8 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .text('Register')
         .on('click', function(event, d) {
             event.stopPropagation();
-            const url = `{{ route('register') }}?place_under=${d.data.parent_referral_code}&position=${d.data.position}`;
-            window.location.href = url;
+            openAddUserModal(d.data);
         });
 
     // Center the tree - HORIZONTAL
@@ -493,6 +603,69 @@ Status: ${data.status || 'unknown'}
         `.trim();
         alert(info);
     }
+
+    // Add User Modal Functions
+    function openAddUserModal(data) {
+        const modal = document.getElementById('add-user-modal');
+        const parentName = data.parent_name || data.parent?.name || 'Selected User';
+        const parentCode = data.parent_referral_code || '';
+        const position = data.position || '';
+
+        document.getElementById('parent-name-modal').textContent = parentName;
+        document.getElementById('parent-info-display').textContent = `Name: ${parentName}`;
+        document.getElementById('parent-code-display').textContent = `Referral Code: ${parentCode}`;
+        document.getElementById('position-display').textContent = position.toUpperCase();
+        document.getElementById('modal-place-under').value = parentCode;
+        document.getElementById('modal-position').value = position;
+
+        modal.classList.remove('hidden');
+    }
+
+    function openAddUserUnderNode(d3Node) {
+        const modal = document.getElementById('add-user-modal');
+        const data = d3Node.data;
+        const parentName = data.name || 'Selected User';
+        const parentCode = data.referral_code || '';
+        
+        // Check which position is available by looking at children
+        // In D3 hierarchy, d3Node.children is an array of D3 nodes
+        const children = d3Node.children || [];
+        const leftChild = children.find(c => c && c.data && c.data.position === 'left');
+        const rightChild = children.find(c => c && c.data && c.data.position === 'right');
+        
+        const hasLeft = leftChild && !leftChild.data.is_vacant;
+        const hasRight = rightChild && !rightChild.data.is_vacant;
+        
+        let position = 'left';
+        if (hasLeft && !hasRight) {
+            position = 'right';
+        } else if (!hasLeft) {
+            position = 'left';
+        } else if (hasLeft && hasRight) {
+            // Both filled, default to left but user can change in registration form
+            position = 'left';
+        }
+
+        document.getElementById('parent-name-modal').textContent = parentName;
+        document.getElementById('parent-info-display').textContent = `Name: ${parentName}`;
+        document.getElementById('parent-code-display').textContent = `Referral Code: ${parentCode}`;
+        document.getElementById('position-display').textContent = position.toUpperCase() + (hasLeft && hasRight ? ' (Auto-selected)' : '');
+        document.getElementById('modal-place-under').value = parentCode;
+        document.getElementById('modal-position').value = position;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeAddUserModal() {
+        document.getElementById('add-user-modal').classList.add('hidden');
+    }
+
+    // Close modal on outside click
+    document.getElementById('add-user-modal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddUserModal();
+        }
+    });
 
     // Initial centering
     setTimeout(centerTree, 100);

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\ActivationKeyTransfer;
 
 
@@ -80,7 +81,12 @@ class ActivationKeyController extends Controller
             ->latest('transferred_at')
             ->get(); // or paginate if needed
     
-        return view('admin.activation_keys.user_index', compact('activationKeys', 'transfers'));
+        // Count available unused PINs
+        $availablePinsCount = ActivationKey::where('assigned_to', $user->id)
+            ->where('status', 'fresh')
+            ->count();
+    
+        return view('admin.activation_keys.user_index', compact('activationKeys', 'transfers', 'availablePinsCount'));
     }
 
 
@@ -164,6 +170,78 @@ class ActivationKeyController extends Controller
         ]);
     
         return back()->with('success', 'Key successfully transferred.');
+    }
+    
+    public function bulkTransferKey(Request $request)
+    {
+        $request->validate([
+            'to_referral_code' => 'required|string|exists:users,referral_code',
+            'count' => 'required|integer|min:1|max:1000',
+        ]);
+    
+        $fromUser = auth()->user();
+    
+        $toUser = User::where('referral_code', $request->to_referral_code)->first();
+    
+        if (!$toUser) {
+            return back()->withErrors(['to_referral_code' => 'Target user not found.']);
+        }
+    
+        // Prevent self-transfer
+        if ($fromUser->id === $toUser->id) {
+            return back()->withErrors(['to_referral_code' => 'Cannot transfer keys to yourself.']);
+        }
+    
+        // Count available unused keys
+        $availableCount = ActivationKey::where('assigned_to', $fromUser->id)
+            ->where('status', 'fresh')
+            ->count();
+    
+        if ($availableCount < $request->count) {
+            return back()->withErrors([
+                'count' => "You only have {$availableCount} unused PIN(s) available. Cannot transfer {$request->count} PIN(s)."
+            ]);
+        }
+    
+        // Get the keys to transfer (oldest first)
+        $keysToTransfer = ActivationKey::where('assigned_to', $fromUser->id)
+            ->where('status', 'fresh')
+            ->orderBy('id', 'asc')
+            ->limit($request->count)
+            ->lockForUpdate()
+            ->get();
+    
+        if ($keysToTransfer->count() < $request->count) {
+            return back()->withErrors([
+                'count' => 'Insufficient unused PINs available. Please try again.'
+            ]);
+        }
+    
+        // Perform bulk transfer in a transaction
+        try {
+            DB::transaction(function () use ($keysToTransfer, $fromUser, $toUser) {
+                foreach ($keysToTransfer as $activationKey) {
+                    // Create transfer record
+                    ActivationKeyTransfer::create([
+                        'activation_key_id' => $activationKey->id,
+                        'from_user_id' => $fromUser->id,
+                        'to_user_id' => $toUser->id,
+                        'transferred_at' => now(),
+                    ]);
+    
+                    // Update key assignment
+                    $activationKey->update([
+                        'assigned_to' => $toUser->id,
+                    ]);
+                }
+            });
+    
+            return back()->with('success', "Successfully transferred {$request->count} PIN(s) to {$toUser->name}.");
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Transfer failed. Please try again.'
+            ]);
+        }
     }
     
     public function getUserByReferral($code)

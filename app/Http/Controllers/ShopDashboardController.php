@@ -11,6 +11,8 @@ use App\Models\BinaryNode;
 use App\Models\BinaryWallet;
 use App\Models\CashbackWallet;
 use App\Models\CashbackRecord;
+use App\Models\CashbackIncome;
+use App\Models\MainWallet;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -54,7 +56,7 @@ class ShopDashboardController extends Controller
                 'commissionAmount' => $commissionAmount,
             ]);
 
-            ShopTransaction::create([
+            $shopTransaction = ShopTransaction::create([
                 'user_id' => $user->id,
                 'shop_id' => $shop->id,
                 'purchase_amount' => $purchaseAmount,
@@ -84,27 +86,33 @@ class ShopDashboardController extends Controller
                 ]);
 
                 if ($level === 1) {
-                    $wallet = CashbackWallet::firstOrCreate([
+                    // Create cashback income record
+                    $cashbackIncome = CashbackIncome::create([
                         'user_id' => $uplineId,
+                        'shop_id' => $shop->id,
+                        'shop_transaction_id' => $shopTransaction->id,
+                        'amount' => $amount,
+                        'description' => "Cashback from shop transaction: {$shop->name}",
                     ]);
-                    // dd($wallet);
+                    
+                    // Add to main wallet
+                    $mainWallet = MainWallet::firstOrCreate(['user_id' => $uplineId], ['balance' => 0]);
+                    $mainWallet->balance += $amount;
+                    $mainWallet->save();
                 
-                    $wallet->cashback_amount += $amount;
-                    $wallet->shop_id = $shop->id;
-                    $wallet->save();
-                
-                    // Create a cashback record entry
+                    // Create a cashback record entry (for tracking)
                     CashbackRecord::create([
                         'user_id' => $uplineId,
-                        'shop_id' => $shop->id,  // Make sure $shop is available in this scope
+                        'shop_id' => $shop->id,
                         'amount'  => $amount,
                     ]);
+                    
                     ShopCommission::updateOrCreate(
                         ['shop_id' => $shop->id],
                         ['total_commission' => DB::raw('total_commission + ' . $commissionAmount)]
                     );
                 
-                    Log::info("✅ Cashback added", [
+                    Log::info("✅ Cashback added to main wallet", [
                         'user_id' => $uplineId,
                         'amount'  => $amount,
                         'shop_id' => $shop->id ?? null,

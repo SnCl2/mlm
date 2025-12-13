@@ -113,6 +113,7 @@ Route::middleware(['auth', 'check.kyc'])->group(function () {
     Route::get('/my-activation-keys', [ActivationKeyController::class, 'userIndex'])->name('activation-keys.user.index');
     Route::post('/activation-keys/use', [ActivationKeyController::class, 'useKey'])->name('activation-keys.use');
     Route::post('/activation-keys/transfer', [ActivationKeyController::class, 'transferKey'])->name('activation-keys.transfer');
+    Route::post('/activation-keys/bulk-transfer', [ActivationKeyController::class, 'bulkTransferKey'])->name('activation-keys.bulk-transfer');
 
 });
 

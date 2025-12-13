@@ -1,17 +1,16 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\CashbackWallet;
-use App\Models\ReferralWallet;
-use App\Models\BinaryWallet;
+use App\Models\MainWallet;
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WithdrawalController extends Controller
 {
     /**
-     * User requests a withdrawal (combined from all 3 wallets)
+     * User requests a withdrawal from main wallet
      */
     public function request(Request $request)
     {
@@ -20,80 +19,45 @@ class WithdrawalController extends Controller
     
         // Validate inputs
         $request->validate([
-            'cashback_amount' => 'nullable|numeric|min:0',
-            'referral_amount' => 'nullable|numeric|min:0',
-            'binary_amount'   => 'nullable|numeric|min:0',
-            'note'            => 'nullable|string|max:255',
+            'amount' => 'required|numeric|min:500',
+            'note'   => 'nullable|string|max:255',
         ]);
     
-        $cashbackAmount = $request->cashback_amount ?? 0;
-        $referralAmount = $request->referral_amount ?? 0;
-        $binaryAmount   = $request->binary_amount ?? 0;
-        $total = $cashbackAmount + $referralAmount + $binaryAmount;
+        $amount = $request->amount;
+        $availableBalance = $available['available_balance'];
     
-        if ($total < 500) {
+        if ($amount < 500) {
             return back()->with('error', 'Minimum ₹500 required to request withdrawal.');
         }
     
-        // Deduct from wallets AT REQUEST TIME (atomic transaction is recommended)
-        \DB::beginTransaction();
+        if ($amount > $availableBalance) {
+            return back()->with('error', 'Insufficient balance. Available: ₹' . number_format($availableBalance, 2));
+        }
+    
+        // Deduct from main wallet AT REQUEST TIME (atomic transaction)
+        DB::beginTransaction();
         try {
-            // Cashback Wallet
-            if ($cashbackAmount > 0) {
-                $cashbackWallet = CashbackWallet::firstOrCreate(['user_id' => $user->id]);
-                if ($cashbackWallet->cashback_amount < $cashbackAmount) {
-                    throw new \Exception('Insufficient Cashback Wallet balance.');
-                }
-                $cashbackWallet->cashback_amount -= $cashbackAmount;
-                $cashbackWallet->save();
+            $mainWallet = MainWallet::firstOrCreate(['user_id' => $user->id], ['balance' => 0]);
+            
+            if ($mainWallet->balance < $amount) {
+                throw new \Exception('Insufficient Main Wallet balance.');
             }
-    
-            // Referral Wallet (deduct oldest entries first)
-            if ($referralAmount > 0) {
-                $referralWalletTotal = ReferralWallet::where('user_id', $user->id)->sum('amount');
-                if ($referralWalletTotal < $referralAmount) {
-                    throw new \Exception('Insufficient Referral Wallet balance.');
-                }
-                $remaining = $referralAmount;
-                $entries = ReferralWallet::where('user_id', $user->id)->orderBy('id')->get();
-                foreach ($entries as $entry) {
-                    if ($remaining <= 0) break;
-                    if ($entry->amount <= $remaining) {
-                        $remaining -= $entry->amount;
-                        $entry->delete();
-                    } else {
-                        $entry->amount -= $remaining;
-                        $entry->save();
-                        $remaining = 0;
-                    }
-                }
-            }
-    
-            // Binary Wallet
-            if ($binaryAmount > 0) {
-                $binaryWallet = BinaryWallet::firstOrCreate(['user_id' => $user->id]);
-                if ($binaryWallet->matching_amount < $binaryAmount) {
-                    throw new \Exception('Insufficient Binary Wallet balance.');
-                }
-                $binaryWallet->matching_amount -= $binaryAmount;
-                $binaryWallet->save();
-            }
+            
+            $mainWallet->balance -= $amount;
+            $mainWallet->save();
     
             // Record the withdrawal as "pending"
             Withdrawal::create([
-                'user_id'         => $user->id,
-                'cashback_amount' => $cashbackAmount,
-                'referral_amount' => $referralAmount,
-                'binary_amount'   => $binaryAmount,
-                'total_amount'    => $total,
-                'status'          => 'pending',
-                'note'            => $request->note,
+                'user_id'      => $user->id,
+                'total_amount' => $amount,
+                'status'       => 'pending',
+                'note'         => $request->note,
             ]);
     
-            \DB::commit();
-            return back()->with('success', 'Withdrawal request submitted and amounts deducted.');
+            DB::commit();
+            return back()->with('success', 'Withdrawal request submitted and amount deducted from main wallet.');
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
     }
@@ -172,41 +136,24 @@ class WithdrawalController extends Controller
             return back()->with('error', 'This withdrawal request is already processed.');
         }
     
-        // Refund
-        \DB::beginTransaction();
+        // Refund to main wallet
+        DB::beginTransaction();
         try {
             $userId = $withdrawal->user_id;
-    
-            // Cashback
-            if ($withdrawal->cashback_amount > 0) {
-                $cashbackWallet = CashbackWallet::firstOrCreate(['user_id' => $userId]);
-                $cashbackWallet->cashback_amount += $withdrawal->cashback_amount;
-                $cashbackWallet->save();
-            }
-    
-            // Referral (re-add a single entry or as per your business rule)
-            if ($withdrawal->referral_amount > 0) {
-                ReferralWallet::create([
-                    'user_id' => $userId,
-                    'amount'  => $withdrawal->referral_amount,
-                ]);
-            }
-    
-            // Binary
-            if ($withdrawal->binary_amount > 0) {
-                $binaryWallet = BinaryWallet::firstOrCreate(['user_id' => $userId]);
-                $binaryWallet->matching_amount += $withdrawal->binary_amount;
-                $binaryWallet->save();
-            }
+            $mainWallet = MainWallet::firstOrCreate(['user_id' => $userId], ['balance' => 0]);
+            
+            // Refund the amount back to main wallet
+            $mainWallet->balance += $withdrawal->total_amount;
+            $mainWallet->save();
     
             // Mark as rejected
             $withdrawal->status = 'rejected';
             $withdrawal->save();
     
-            \DB::commit();
-            return back()->with('success', 'Withdrawal rejected and all amounts refunded.');
+            DB::commit();
+            return back()->with('success', 'Withdrawal rejected and amount refunded to main wallet.');
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             return back()->with('error', 'Error refunding: ' . $e->getMessage());
         }
     }

@@ -25,6 +25,53 @@
     <!-- ✅ Assigned Keys -->
     <div x-show="tab === 'assigned'" x-cloak>
         @if($activationKeys->count())
+        <!-- Bulk Transfer Button -->
+        <div class="mb-4 flex justify-end">
+            <button onclick="document.getElementById('bulk-transfer-modal').classList.remove('hidden')" 
+                class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md flex items-center gap-2">
+                <i class="fas fa-exchange-alt"></i>
+                Bulk Transfer PINs
+            </button>
+        </div>
+
+        <!-- Bulk Transfer Modal -->
+        <div id="bulk-transfer-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h2 class="text-lg font-bold mb-4">Bulk Transfer PINs</h2>
+                <form action="{{ route('activation-keys.bulk-transfer') }}" method="POST" onsubmit="return validateBulkTransferForm()">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-1">Recipient Referral ID</label>
+                        <input type="text" id="bulk-referral" name="to_referral_code" class="w-full border rounded px-3 py-2 mt-1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-1">Confirm Referral ID</label>
+                        <input type="text" id="bulk-referral-confirm" class="w-full border rounded px-3 py-2 mt-1" required>
+                    </div>
+                    <div class="mb-1 text-sm" id="bulk-name-display"></div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-1">Number of PINs to Transfer</label>
+                        <input type="number" id="bulk-count" name="count" min="1" max="1000" class="w-full border rounded px-3 py-2 mt-1" required>
+                        <p class="text-xs text-gray-500 mt-1">Enter the number of unused PINs you want to transfer</p>
+                    </div>
+                    <div class="mb-3 text-sm text-gray-600">
+                        <span id="available-pins-count">Loading available PINs...</span>
+                    </div>
+                    @if($errors->any())
+                        <div class="mb-3 text-red-600 text-sm">
+                            @foreach($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    @endif
+                    <div class="flex justify-between mt-4">
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Transfer</button>
+                        <button type="button" onclick="document.getElementById('bulk-transfer-modal').classList.add('hidden')" class="text-gray-600 px-4 py-2">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="overflow-x-auto bg-white rounded-lg shadow">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100 text-left text-sm font-semibold text-gray-700">
@@ -258,5 +305,66 @@ function fetchUserName(inputElement, displayElement) {
             displayElement.classList.add('text-red-500');
         });
 }
+
+// Bulk Transfer Functions
+function validateBulkTransferForm() {
+    const original = document.getElementById('bulk-referral').value.trim();
+    const confirm = document.getElementById('bulk-referral-confirm').value.trim();
+    const count = parseInt(document.getElementById('bulk-count').value);
+
+    if (original !== confirm) {
+        alert("Referral IDs do not match!");
+        return false;
+    }
+
+    if (!count || count < 1) {
+        alert("Please enter a valid number of PINs to transfer (minimum 1).");
+        return false;
+    }
+
+    return true;
+}
+
+// Update available PINs count
+function updateAvailablePinsCount() {
+    const freshCount = {{ $availablePinsCount ?? 0 }};
+    const countElement = document.getElementById('available-pins-count');
+    if (countElement) {
+        countElement.textContent = `Available unused PINs: ${freshCount}`;
+        if (freshCount === 0) {
+            countElement.classList.add('text-red-600', 'font-semibold');
+        } else {
+            countElement.classList.remove('text-red-600', 'font-semibold');
+            countElement.classList.add('text-green-600');
+        }
+    }
+}
+
+// Setup bulk transfer form handlers
+document.addEventListener('DOMContentLoaded', function () {
+    // Bulk transfer referral code lookup
+    const bulkReferralInput = document.getElementById('bulk-referral');
+    const bulkNameDisplay = document.getElementById('bulk-name-display');
+    
+    if (bulkReferralInput && bulkNameDisplay) {
+        bulkReferralInput.addEventListener('blur', function () {
+            fetchUserName(bulkReferralInput, bulkNameDisplay);
+        });
+    }
+
+    // Update available PINs count on page load
+    updateAvailablePinsCount();
+
+    // Update available PINs when modal opens
+    const bulkTransferModal = document.getElementById('bulk-transfer-modal');
+    if (bulkTransferModal) {
+        const openButton = document.querySelector('[onclick*="bulk-transfer-modal"]');
+        if (openButton) {
+            openButton.addEventListener('click', function() {
+                setTimeout(updateAvailablePinsCount, 100);
+            });
+        }
+    }
+});
 </script>
 @endsection
