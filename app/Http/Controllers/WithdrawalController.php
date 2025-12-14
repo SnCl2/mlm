@@ -41,12 +41,11 @@ class WithdrawalController extends Controller
             }
             
             // Calculate available balance WITHIN transaction using fresh data
-            // Available = Main Wallet Balance - Sum of ALL pending withdrawals
+            // Available = Current Main Wallet Balance
+            // Since pending withdrawals are already deducted from main wallet at request time,
+            // the available balance is simply the current main wallet balance
             $mainBalance = $mainWallet->balance;
-            $pendingWithdrawn = Withdrawal::where('user_id', $user->id)
-                ->where('status', 'pending')
-                ->sum('total_amount');
-            $availableBalance = $mainBalance - $pendingWithdrawn;
+            $availableBalance = $mainBalance;
             
             // Validate against fresh available balance
             if ($amount > $availableBalance) {

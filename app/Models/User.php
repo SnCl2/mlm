@@ -204,8 +204,10 @@ class User extends Authenticatable
         $totalWithdrawn = $this->withdrawals()->where('status', 'approved')->sum('total_amount');
         $pendingWithdrawn = $this->withdrawals()->where('status', 'pending')->sum('total_amount');
     
-        // Ensure available balance is never negative (safety check)
-        $availableBalance = max(0, $mainBalance - $pendingWithdrawn);
+        // Available balance = Current main wallet balance
+        // Since pending withdrawals are already deducted from main wallet at request time,
+        // the available balance is simply the current main wallet balance
+        $availableBalance = max(0, $mainBalance);
     
         return [
             'main_wallet' => $mainBalance,
