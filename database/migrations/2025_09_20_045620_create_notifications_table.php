@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('notifications'); // Drop if exists to handle migration issues
+        
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->string('title');
