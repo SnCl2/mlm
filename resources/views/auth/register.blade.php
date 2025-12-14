@@ -86,7 +86,7 @@
                 @endif
                 <div>
                   <p class="font-semibold text-gray-800">{{ $product->name }}</p>
-                  <p class="text-sm text-gray-600">₹3,000</p>
+                  <p class="text-sm text-gray-600">₹4,000</p>
                 </div>
               </div>
             </label>
