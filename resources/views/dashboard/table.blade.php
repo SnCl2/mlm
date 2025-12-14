@@ -4,221 +4,339 @@
 
 @push('styles')
 <style>
-    /* Modern Page Container */
-    .table-page-container {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        min-height: 100vh;
-        padding: 2rem;
+    * {
+        box-sizing: border-box;
     }
 
-    /* Modern Header */
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        margin: 0;
+        padding: 0;
+    }
+
+    .table-page {
+        min-height: 100vh;
         padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 24px;
+        padding: 3rem;
         margin-bottom: 2rem;
-        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-        color: white;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     }
 
     .page-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
+        font-size: 3rem;
+        font-weight: 800;
         margin: 0 0 0.5rem 0;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
     }
 
     .page-header p {
-        font-size: 1.1rem;
-        opacity: 0.95;
+        font-size: 1.125rem;
+        color: #94a3b8;
         margin: 0;
+        font-weight: 400;
     }
 
-    /* Stats Cards */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(96, 165, 250, 0.1);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 12px;
+        color: #60a5fa;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+        margin-top: 1.5rem;
+    }
+
+    .back-btn:hover {
+        background: rgba(96, 165, 250, 0.2);
+        border-color: rgba(96, 165, 250, 0.5);
+        transform: translateX(-4px);
+    }
+
+    /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
     .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+        opacity: 0;
+        transition: opacity 0.3s;
     }
 
     .stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        border-color: rgba(148, 163, 184, 0.2);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
-    .stat-card-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.75rem;
         margin-bottom: 1rem;
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(167, 139, 250, 0.2));
     }
 
-    .stat-card-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1e293b;
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #f8fafc;
         margin: 0.5rem 0;
+        line-height: 1;
     }
 
-    .stat-card-label {
+    .stat-label {
         font-size: 0.875rem;
-        color: #64748b;
+        color: #94a3b8;
         font-weight: 500;
-    }
-
-    /* Filter Section */
-    .filters-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        border: 1px solid #e2e8f0;
-    }
-
-    .filter-input {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        background: #f8fafc;
-    }
-
-    .filter-input:focus {
-        outline: none;
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    /* Modern Table */
-    .table-card {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        border: 1px solid #e2e8f0;
-    }
-
-    .table-header {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        padding: 1.5rem;
-        border-bottom: 2px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .table-header h3 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-    }
-
-    .table-wrapper {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .modern-table thead th {
-        padding: 1rem 1.25rem;
-        text-align: left;
-        font-weight: 600;
-        font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        border: none;
     }
 
-    .modern-table thead th.sortable {
-        cursor: pointer;
-        user-select: none;
-        transition: background 0.2s ease;
-        position: relative;
+    /* Filters */
+    .filters-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
     }
 
-    .modern-table thead th.sortable:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .modern-table tbody tr {
-        transition: all 0.2s ease;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8fafc;
-        transform: scale(1.01);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .modern-table tbody td {
-        padding: 1rem 1.25rem;
-        color: #475569;
-        font-size: 0.95rem;
-    }
-
-    /* User Avatar */
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        object-fit: cover;
-        border: 2px solid #e2e8f0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .user-info {
+    .filters-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0 0 1.5rem 0;
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
 
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .filter-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        color: #f8fafc;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: #60a5fa;
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+
+    .filter-input::placeholder {
+        color: #64748b;
+    }
+
+    /* Table Container */
+    .table-container {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .table-header-bar {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.5);
+    }
+
+    .table-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0;
+    }
+
+    .table-count {
+        font-size: 0.875rem;
+        color: #94a3b8;
+    }
+
+    .table-count strong {
+        color: #60a5fa;
+        font-weight: 700;
+    }
+
+    /* Table */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: rgba(15, 23, 42, 0.8);
+    }
+
+    th {
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s;
+    }
+
+    th:hover {
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.05);
+    }
+
+    th.sort-icon {
+        margin-left: 0.5rem;
+        opacity: 0.5;
+        font-size: 0.625rem;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+        transition: all 0.2s;
+    }
+
+    tbody tr:hover {
+        background: rgba(96, 165, 250, 0.05);
+        transform: scale(1.01);
+    }
+
+    td {
+        padding: 1.25rem 1.5rem;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+    }
+
+    /* Level Badge */
+    .level-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        color: white;
+        font-weight: 700;
+        font-size: 0.875rem;
+        box-shadow: 0 4px 6px rgba(96, 165, 250, 0.3);
+    }
+
+    /* User Info */
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid rgba(96, 165, 250, 0.3);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
     .user-details h4 {
         font-weight: 600;
-        color: #1e293b;
+        color: #f8fafc;
         margin: 0 0 0.25rem 0;
         font-size: 0.95rem;
     }
 
     .user-details p {
         font-size: 0.75rem;
-        color: #64748b;
+        color: #94a3b8;
         margin: 0;
+        font-family: 'Courier New', monospace;
     }
 
-    /* Status Badges */
+    /* Status Badge */
     .status-badge {
         display: inline-flex;
         align-items: center;
-        padding: 0.375rem 0.75rem;
+        padding: 0.375rem 0.875rem;
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
@@ -227,51 +345,37 @@
     }
 
     .status-badge.active {
-        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-        color: #065f46;
-        border: 1px solid #10b981;
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
     }
 
     .status-badge.inactive {
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        color: #991b1b;
-        border: 1px solid #ef4444;
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    /* Points Display */
-    .points-display {
+    /* Points */
+    .points {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.5rem 0.875rem;
         border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
+        font-weight: 700;
+        font-size: 0.875rem;
     }
 
     .points-left {
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        color: #1e40af;
+        background: rgba(96, 165, 250, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
 
     .points-right {
-        background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-        color: #6b21a8;
-    }
-
-    /* Level Badge */
-    .level-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.875rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        background: rgba(167, 139, 250, 0.2);
+        color: #a78bfa;
+        border: 1px solid rgba(167, 139, 250, 0.3);
     }
 
     /* Empty State */
@@ -280,127 +384,111 @@
         text-align: center;
     }
 
-    .empty-state-icon {
+    .empty-icon {
         width: 80px;
         height: 80px;
         margin: 0 auto 1.5rem;
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        background: rgba(96, 165, 250, 0.1);
         border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2.5rem;
-        color: #94a3b8;
     }
 
     .empty-state h3 {
         font-size: 1.5rem;
-        font-weight: 600;
-        color: #1e293b;
+        font-weight: 700;
+        color: #f8fafc;
         margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-        color: #64748b;
+        color: #94a3b8;
         font-size: 1rem;
-    }
-
-    /* Sort Icon */
-    .sort-icon {
-        margin-left: 0.5rem;
-        font-size: 0.75rem;
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-    }
-
-    .sortable:hover .sort-icon {
-        opacity: 1;
-    }
-
-    /* Back Button */
-    .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: white;
-        color: #667eea;
-        border: 2px solid #667eea;
-        border-radius: 10px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .back-button:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        margin: 0;
     }
 
     /* Success Message */
-    .success-message {
-        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-        border-left: 4px solid #10b981;
-        border-radius: 10px;
+    .success-msg {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-left: 4px solid #22c55e;
+        border-radius: 12px;
         padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
-    }
-
-    .success-message p {
-        margin: 0;
-        color: #065f46;
+        margin-bottom: 2rem;
+        color: #22c55e;
         font-weight: 500;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .table-page-container {
+        .table-page {
             padding: 1rem;
         }
 
         .page-header {
-            padding: 1.5rem;
+            padding: 2rem;
         }
 
         .page-header h1 {
-            font-size: 1.75rem;
+            font-size: 2rem;
         }
 
         .stats-grid {
             grid-template-columns: 1fr;
         }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+
+        th, td {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Scrollbar */
+    .table-wrapper::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(96, 165, 250, 0.5);
+        border-radius: 4px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: rgba(96, 165, 250, 0.7);
     }
 </style>
 @endpush
 
 @section('content')
-<div class="table-page-container">
-    <!-- Modern Header -->
+<div class="table-page">
+    <!-- Header -->
     <div class="page-header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1>📊 Downline Structure</h1>
-                <p>Comprehensive view of your network hierarchy and performance metrics</p>
-            </div>
-            <a href="{{ url()->previous() }}" class="back-button">
-                <span>←</span>
-                <span>Back</span>
-            </a>
-        </div>
+        <h1>Downline Structure</h1>
+        <p>Comprehensive view of your network hierarchy and performance metrics</p>
+        <a href="{{ url()->previous() }}" class="back-btn">
+            <span>←</span>
+            <span>Back</span>
+        </a>
     </div>
 
     <!-- Success Message -->
     @if(session('success'))
-    <div class="success-message">
-        <p>✅ {{ session('success') }}</p>
+    <div class="success-msg">
+        ✓ {{ session('success') }}
     </div>
     @endif
 
-    <!-- Stats Cards -->
+    <!-- Stats -->
     @php
         $totalUsers = count($tableData);
         $activeUsers = collect($tableData)->where('status', 'active')->count();
@@ -409,54 +497,48 @@
     @endphp
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-card-icon" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af;">
-                👥
-            </div>
-            <div class="stat-card-value">{{ $totalUsers }}</div>
-            <div class="stat-card-label">Total Members</div>
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ $totalUsers }}</div>
+            <div class="stat-label">Total Members</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card-icon" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
-                ✓
-            </div>
-            <div class="stat-card-value">{{ $activeUsers }}</div>
-            <div class="stat-card-label">Active Members</div>
+            <div class="stat-icon">✓</div>
+            <div class="stat-value">{{ $activeUsers }}</div>
+            <div class="stat-label">Active Members</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card-icon" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af;">
-                ⬅️
-            </div>
-            <div class="stat-card-value">{{ number_format($totalLeftPoints) }}</div>
-            <div class="stat-card-label">Total Left Points</div>
+            <div class="stat-icon">⬅️</div>
+            <div class="stat-value">{{ number_format($totalLeftPoints) }}</div>
+            <div class="stat-label">Left Points</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card-icon" style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); color: #6b21a8;">
-                ➡️
-            </div>
-            <div class="stat-card-value">{{ number_format($totalRightPoints) }}</div>
-            <div class="stat-card-label">Total Right Points</div>
+            <div class="stat-icon">➡️</div>
+            <div class="stat-value">{{ number_format($totalRightPoints) }}</div>
+            <div class="stat-label">Right Points</div>
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="filters-card">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">🔍 Filter & Search</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label for="searchInput" class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
-                <input type="text" id="searchInput" placeholder="Search by name or referral code..." 
-                       class="filter-input">
+    <!-- Filters -->
+    <div class="filters-section">
+        <h3 class="filters-title">
+            <span>🔍</span>
+            <span>Filter & Search</span>
+        </h3>
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Search by name or code..." class="filter-input">
             </div>
-            <div>
-                <label for="statusFilter" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+            <div class="filter-group">
+                <label>Status</label>
                 <select id="statusFilter" class="filter-input">
                     <option value="">All Statuses</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                 </select>
             </div>
-            <div>
-                <label for="levelFilter" class="block text-sm font-semibold text-gray-700 mb-2">Level</label>
+            <div class="filter-group">
+                <label>Level</label>
                 <select id="levelFilter" class="filter-input">
                     <option value="">All Levels</option>
                     @foreach(range(1, 20) as $level)
@@ -467,67 +549,40 @@
         </div>
     </div>
 
-    <!-- Modern Table -->
-    <div class="table-card">
-        <div class="table-header">
-            <h3>📋 Downline Structure</h3>
-            <div id="tableStatus" class="text-sm font-medium text-gray-600">
-                Showing <span id="visibleRows" class="font-bold text-indigo-600">0</span> of 
-                <span id="totalRows" class="font-bold text-gray-800">0</span> entries
+    <!-- Table -->
+    <div class="table-container">
+        <div class="table-header-bar">
+            <h3 class="table-title">Downline Structure</h3>
+            <div class="table-count">
+                Showing <strong id="visibleRows">0</strong> of <strong id="totalRows">0</strong> entries
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="modern-table" id="binaryTreeTable">
+            <table id="binaryTreeTable">
                 <thead>
                     <tr>
-                        <th class="sortable" data-column="0">
-                            Level <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="1">
-                            User <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="2">
-                            Referred By <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="3">
-                            Parent <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="4">
-                            Status <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable text-center" data-column="5">
-                            Left Points <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable text-center" data-column="6">
-                            Right Points <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="7">
-                            Left Users <span class="sort-icon">↓↑</span>
-                        </th>
-                        <th class="sortable" data-column="8">
-                            Right Users <span class="sort-icon">↓↑</span>
-                        </th>
+                        <th class="sortable" data-column="0">Level <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="1">User <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="2">Referred By <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="3">Parent <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="4">Status <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable text-center" data-column="5">Left Points <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable text-center" data-column="6">Right Points <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="7">Left Users <span class="sort-icon">↓↑</span></th>
+                        <th class="sortable" data-column="8">Right Users <span class="sort-icon">↓↑</span></th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     @forelse ($tableData as $row)
                         <tr>
+                            <td><span class="level-badge">{{ $row['level'] }}</span></td>
                             <td>
-                                <span class="level-badge">{{ $row['level'] }}</span>
-                            </td>
-                            <td>
-                                <div class="user-info">
+                                <div class="user-cell">
                                     @php
-                                        $fallbackUrl = 'https://ui-avatars.com/api/?name=' . urlencode($row['name']) . '&background=667eea&color=fff&size=128';
+                                        $fallbackUrl = 'https://ui-avatars.com/api/?name=' . urlencode($row['name']) . '&background=60a5fa&color=fff&size=128';
                                         if ($row['image']) {
-                                            // Try multiple path variations
                                             $imagePath = $row['image'];
-                                            $possiblePaths = [
-                                                asset('storage/' . $imagePath),
-                                                asset('public/storage/' . $imagePath),
-                                                url('storage/' . $imagePath),
-                                            ];
-                                            $imageUrl = $possiblePaths[0]; // Default to standard path
+                                            $imageUrl = asset('storage/' . $imagePath);
                                         } else {
                                             $imageUrl = $fallbackUrl;
                                         }
@@ -543,12 +598,8 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
-                                <span class="text-gray-600">{{ $row['referred_by'] ?? '—' }}</span>
-                            </td>
-                            <td>
-                                <span class="text-gray-600">{{ $row['parent'] ?? '—' }}</span>
-                            </td>
+                            <td>{{ $row['referred_by'] ?? '—' }}</td>
+                            <td>{{ $row['parent'] ?? '—' }}</td>
                             <td>
                                 @if(strtolower($row['status']) == 'active')
                                     <span class="status-badge active">Active</span>
@@ -557,36 +608,30 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <span class="points-display points-left">{{ number_format($row['leftPoints']) }}</span>
+                                <span class="points points-left">{{ number_format($row['leftPoints']) }}</span>
                             </td>
                             <td class="text-center">
-                                <span class="points-display points-right">{{ number_format($row['rightPoints']) }}</span>
+                                <span class="points points-right">{{ number_format($row['rightPoints']) }}</span>
                             </td>
                             <td>
                                 @if(is_array($row['leftUsers']))
-                                    <span class="text-gray-600">
-                                        Active: {{ $row['leftUsers']['active'] ?? 0 }}, 
-                                        Inactive: {{ $row['leftUsers']['inactive'] ?? 0 }}
-                                    </span>
+                                    Active: {{ $row['leftUsers']['active'] ?? 0 }}, Inactive: {{ $row['leftUsers']['inactive'] ?? 0 }}
                                 @else
-                                    <span class="text-gray-600">{{ $row['leftUsers'] }}</span>
+                                    {{ $row['leftUsers'] }}
                                 @endif
                             </td>
                             <td>
                                 @if(is_array($row['rightUsers']))
-                                    <span class="text-gray-600">
-                                        Active: {{ $row['rightUsers']['active'] ?? 0 }}, 
-                                        Inactive: {{ $row['rightUsers']['inactive'] ?? 0 }}
-                                    </span>
+                                    Active: {{ $row['rightUsers']['active'] ?? 0 }}, Inactive: {{ $row['rightUsers']['inactive'] ?? 0 }}
                                 @else
-                                    <span class="text-gray-600">{{ $row['rightUsers'] }}</span>
+                                    {{ $row['rightUsers'] }}
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="9" class="empty-state">
-                                <div class="empty-state-icon">📊</div>
+                                <div class="empty-icon">📊</div>
                                 <h3>No Data Available</h3>
                                 <p>There is no binary tree data to display at the moment.</p>
                             </td>
@@ -600,7 +645,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const table = document.getElementById('binaryTreeTable');
     const tbody = document.getElementById('tableBody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const searchInput = document.getElementById('searchInput');
@@ -610,26 +654,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const visibleRowsSpan = document.getElementById('visibleRows');
     const totalRowsSpan = document.getElementById('totalRows');
     
-    // Initialize variables for sorting
     let currentSortColumn = 0;
     let currentSortDirection = 'asc';
     
-    // Set initial counts
     const totalCount = rows.length;
     totalRowsSpan.textContent = totalCount;
     visibleRowsSpan.textContent = totalCount;
     
-    // Function to filter and display rows
     function filterRows() {
         const searchTerm = searchInput.value.toLowerCase();
         const statusValue = statusFilter.value.toLowerCase();
         const levelValue = levelFilter.value;
-    
         let visibleCount = 0;
     
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            if (cells.length === 0) return; // Skip empty state row
+            if (cells.length === 0) return;
             
             const level = cells[0].textContent.trim();
             const name = cells[1].querySelector('.user-details h4')?.textContent.toLowerCase() || '';
@@ -637,12 +677,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusElement = cells[4].querySelector('.status-badge');
             const status = statusElement ? statusElement.textContent.trim().toLowerCase() : '';
     
-            const matchesSearch = searchTerm === '' || 
-                                  name.includes(searchTerm) || 
-                                  referralCode.includes(searchTerm);
-    
+            const matchesSearch = searchTerm === '' || name.includes(searchTerm) || referralCode.includes(searchTerm);
             const matchesStatus = statusValue === '' || status === statusValue;
-    
             const matchesLevel = levelValue === '' || level === levelValue;
     
             if (matchesSearch && matchesStatus && matchesLevel) {
@@ -655,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
         visibleRowsSpan.textContent = visibleCount;
     
-        // Empty row logic
         const existingEmpty = tbody.querySelector('.no-results');
         if (visibleCount === 0) {
             if (!existingEmpty) {
@@ -663,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 emptyRow.classList.add('no-results');
                 emptyRow.innerHTML = `
                     <td colspan="9" class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
+                        <div class="empty-icon">🔍</div>
                         <h3>No Matching Data Found</h3>
                         <p>Try adjusting your search or filter criteria.</p>
                     </td>
@@ -675,7 +710,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to sort table
     function sortTable(columnIndex, direction) {
         const rowsArray = Array.from(tbody.querySelectorAll('tr:not(.no-results)'));
         
@@ -686,45 +720,36 @@ document.addEventListener('DOMContentLoaded', function() {
             let aValue = aCell.textContent.trim();
             let bValue = bCell.textContent.trim();
             
-            // Special handling for numeric columns (Level, Left Points, Right Points)
             if (columnIndex === 0 || columnIndex === 5 || columnIndex === 6) {
                 aValue = parseFloat(aValue.replace(/,/g, '')) || 0;
                 bValue = parseFloat(bValue.replace(/,/g, '')) || 0;
                 return direction === 'asc' ? aValue - bValue : bValue - aValue;
             }
             
-            // Special handling for status column (Active comes first)
             if (columnIndex === 4) {
                 if (aValue === 'Active' && bValue !== 'Active') return direction === 'asc' ? -1 : 1;
                 if (aValue !== 'Active' && bValue === 'Active') return direction === 'asc' ? 1 : -1;
             }
             
-            // Default string comparison
             return direction === 'asc' 
                 ? aValue.localeCompare(bValue) 
                 : bValue.localeCompare(aValue);
         });
         
-        // Clear existing rows (except the no-results row if it exists)
         const existingEmpty = tbody.querySelector('.no-results');
         tbody.innerHTML = '';
         if (existingEmpty) tbody.appendChild(existingEmpty);
-        
-        // Append sorted rows
         rowsArray.forEach(row => tbody.appendChild(row));
     }
     
-    // Event listeners for filtering
     searchInput.addEventListener('input', filterRows);
     statusFilter.addEventListener('change', filterRows);
     levelFilter.addEventListener('change', filterRows);
     
-    // Event listeners for sorting
     sortableHeaders.forEach(header => {
         header.addEventListener('click', () => {
             const columnIndex = parseInt(header.dataset.column);
             
-            // Update sort direction
             if (currentSortColumn === columnIndex) {
                 currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
             } else {
@@ -732,7 +757,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentSortDirection = 'asc';
             }
             
-            // Update UI to show current sort column and direction
             sortableHeaders.forEach(h => {
                 h.querySelector('.sort-icon').textContent = '↓↑';
             });
@@ -740,12 +764,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const icon = header.querySelector('.sort-icon');
             icon.textContent = currentSortDirection === 'asc' ? '↑' : '↓';
             
-            // Perform the sort
             sortTable(columnIndex, currentSortDirection);
         });
     });
     
-    // Initialize the table
     filterRows();
 });
 </script>
