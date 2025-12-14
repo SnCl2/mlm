@@ -165,7 +165,7 @@
 .btn-indigo{background:#4f46e5;color:white}
 .btn-amber{background:#f59e0b;color:white}
 .input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #cbd5e1}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:50}
 .modal-card{background:white;padding:24px;border-radius:16px;width:100%;max-width:420px}
 .modal-title{font-weight:700;margin-bottom:16px}
 .modal-actions{display:flex;justify-content:space-between;margin-top:20px}
