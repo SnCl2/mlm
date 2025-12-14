@@ -100,18 +100,45 @@ class DashboardController extends Controller
         }
 
         // Step 2: Load all users with relationships in one query
+        // CRITICAL: Ensure root user is loaded first and separately if needed
         $users = User::with(['binaryNode', 'binaryWallet', 'kyc'])
             ->whereIn('id', $userIds)
             ->get()
             ->keyBy('id');
         
-        // Debug: Ensure the starting user is in the collection
+        // Debug: Log what users were loaded
+        \Log::info("Loaded users: " . implode(', ', $users->keys()->toArray()));
+        \Log::info("Expected starting user ID: {$userId}");
+        
+        // CRITICAL: Ensure the starting user is in the collection and is the correct user
         if (!isset($users[$userId])) {
             \Log::error("Starting user ID {$userId} not found in users collection after loading. UserIds collected: " . implode(', ', $userIds));
             // Force load the starting user if missing
             $startingUser = User::with(['binaryNode', 'binaryWallet', 'kyc'])->find($userId);
             if ($startingUser) {
                 $users[$userId] = $startingUser;
+                \Log::info("Force loaded starting user ID {$userId}: {$startingUser->name}");
+            } else {
+                \Log::error("Could not load starting user ID {$userId} from database!");
+                return null;
+            }
+        } else {
+            // Verify the user at this key is actually the correct user
+            $loadedUser = $users[$userId];
+            if ($loadedUser->id !== $userId) {
+                \Log::error("User ID mismatch in collection! Key: {$userId}, User ID: {$loadedUser->id}, User Name: {$loadedUser->name}");
+                // Remove incorrect user and reload correct one
+                $users->forget($userId);
+                $correctUser = User::with(['binaryNode', 'binaryWallet', 'kyc'])->find($userId);
+                if ($correctUser) {
+                    $users[$userId] = $correctUser;
+                    \Log::info("Corrected user collection - loaded correct user ID {$userId}: {$correctUser->name}");
+                } else {
+                    \Log::error("Could not load correct user ID {$userId} from database!");
+                    return null;
+                }
+            } else {
+                \Log::info("Verified user in collection - ID {$userId}: {$loadedUser->name}");
             }
         }
 
@@ -236,9 +263,9 @@ class DashboardController extends Controller
         $queue = [[$rootUserId, 0]];
         $visited = [];
 
-        // Always include the root user first
+        // Always include the root user first - CRITICAL: Must be first in array
         $visited[$rootUserId] = true;
-        $userIds[] = $rootUserId;
+        $userIds = [$rootUserId]; // Start with root user only
 
         while (!empty($queue)) {
             [$currentUserId, $depth] = array_shift($queue);
@@ -271,6 +298,13 @@ class DashboardController extends Controller
                     $queue[] = [$childId, $depth + 1];
                 }
             }
+        }
+
+        // Final verification: Root user must be first
+        if (!empty($userIds) && $userIds[0] !== $rootUserId) {
+            \Log::warning("Root user ID {$rootUserId} is not first in userIds array. First ID: " . ($userIds[0] ?? 'null'));
+            // Force root user to be first
+            $userIds = array_values(array_unique(array_merge([$rootUserId], $userIds)));
         }
 
         return $userIds;
@@ -349,16 +383,28 @@ class DashboardController extends Controller
         
         // Ensure user exists in collection
         if (!isset($users[$userId])) {
-            \Log::error("buildTreeFromCache: User ID {$userId} not found in users collection");
+            \Log::error("buildTreeFromCache: User ID {$userId} not found in users collection. Available keys: " . implode(', ', $users->keys()->toArray()));
             return null;
         }
 
         $user = $users[$userId];
         
-        // Verify we got the correct user
+        // CRITICAL: Verify we got the correct user - if not, reload it
         if ($user->id != $userId) {
-            \Log::error("buildTreeFromCache: User ID mismatch! Expected {$userId}, got {$user->id}");
-            return null;
+            \Log::error("buildTreeFromCache: User ID mismatch! Expected {$userId}, got {$user->id}. User name: {$user->name}");
+            \Log::error("This indicates the users collection is incorrectly keyed. Attempting to reload correct user.");
+            
+            // Try to reload the correct user directly from database
+            $correctUser = User::with(['binaryNode', 'kyc'])->find($userId);
+            if ($correctUser) {
+                \Log::info("Reloaded correct user ID {$userId}: {$correctUser->name}");
+                $user = $correctUser;
+                // Update the collection
+                $users[$userId] = $correctUser;
+            } else {
+                \Log::error("Could not reload user ID {$userId} from database!");
+                return null;
+            }
         }
         $binaryNode = $binaryNodes[$userId] ?? null;
         $children = $childrenMap[$userId] ?? ['left' => null, 'right' => null];
