@@ -61,6 +61,18 @@ class DashboardController extends Controller
 
         // Pre-load all data for the entire tree to avoid N+1 queries
         $treeData = $this->buildBinaryTreeOptimized($user->id, $maxDepth);
+        
+        // Debug: Log to ensure we're building from the correct user
+        \Log::info('Tree View - Logged in user ID: ' . $user->id);
+        \Log::info('Tree View - Tree data ID: ' . ($treeData['id'] ?? 'null'));
+        
+        // Safety check: Ensure tree data matches logged-in user
+        if ($treeData && isset($treeData['id']) && $treeData['id'] !== $user->id) {
+            \Log::warning('Tree data ID mismatch! Expected: ' . $user->id . ', Got: ' . $treeData['id']);
+            // Rebuild tree from the correct user ID
+            $treeData = $this->buildBinaryTreeOptimized($user->id, $maxDepth);
+        }
+        
         $availableSpots = $this->getAvailableUplineOptions();
 
         return view('dashboard.tree', [
@@ -92,6 +104,16 @@ class DashboardController extends Controller
             ->whereIn('id', $userIds)
             ->get()
             ->keyBy('id');
+        
+        // Debug: Ensure the starting user is in the collection
+        if (!isset($users[$userId])) {
+            \Log::error("Starting user ID {$userId} not found in users collection after loading. UserIds collected: " . implode(', ', $userIds));
+            // Force load the starting user if missing
+            $startingUser = User::with(['binaryNode', 'binaryWallet', 'kyc'])->find($userId);
+            if ($startingUser) {
+                $users[$userId] = $startingUser;
+            }
+        }
 
         // Step 3: Load all binary nodes in one query
         $binaryNodes = BinaryNode::whereIn('user_id', $userIds)
@@ -181,7 +203,13 @@ class DashboardController extends Controller
         $userCountsCache = $this->calculateUserCountsOptimized($userIds, $users, $binaryNodes, $childrenMap);
 
         // Step 7: Build tree recursively using cached data
-        return $this->buildTreeFromCache(
+        // Ensure the starting user exists in the users collection
+        if (!isset($users[$userId])) {
+            \Log::error("User ID {$userId} not found in users collection. Available IDs: " . implode(', ', $users->keys()->toArray()));
+            return null;
+        }
+        
+        $treeResult = $this->buildTreeFromCache(
             $userId,
             $users,
             $binaryNodes,
@@ -190,6 +218,13 @@ class DashboardController extends Controller
             $userCountsCache,
             $maxDepth
         );
+        
+        // Debug: Verify the returned tree has the correct root user ID
+        if ($treeResult && isset($treeResult['id']) && $treeResult['id'] !== $userId) {
+            \Log::warning("Tree built from user ID {$userId} but returned tree has ID {$treeResult['id']}");
+        }
+        
+        return $treeResult;
     }
 
     /**
@@ -308,11 +343,23 @@ class DashboardController extends Controller
      */
     private function buildTreeFromCache($userId, $users, $binaryNodes, $childrenMap, $nameCache, $userCountsCache, $depth)
     {
-        if ($depth <= 0 || !isset($users[$userId])) {
+        if ($depth <= 0) {
+            return null;
+        }
+        
+        // Ensure user exists in collection
+        if (!isset($users[$userId])) {
+            \Log::error("buildTreeFromCache: User ID {$userId} not found in users collection");
             return null;
         }
 
         $user = $users[$userId];
+        
+        // Verify we got the correct user
+        if ($user->id != $userId) {
+            \Log::error("buildTreeFromCache: User ID mismatch! Expected {$userId}, got {$user->id}");
+            return null;
+        }
         $binaryNode = $binaryNodes[$userId] ?? null;
         $children = $childrenMap[$userId] ?? ['left' => null, 'right' => null];
 
