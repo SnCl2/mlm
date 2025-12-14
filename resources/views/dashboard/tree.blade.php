@@ -148,27 +148,73 @@
     }
 
     .controls {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
     }
 
     .btn {
-        padding: 8px 16px;
-        margin: 0 5px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: white;
+        padding: 10px 20px;
+        margin: 0;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
         cursor: pointer;
         font-size: 14px;
-        transition: all 0.2s;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
     }
 
     .btn:hover {
-        background: #f1f5f9;
-        border-color: #94a3b8;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: #667eea;
+        ring-offset: 2px;
+    }
+
+    #zoom-level {
+        font-weight: 600;
+        color: #667eea;
+        font-size: 15px;
     }
 
     .legend {
@@ -216,12 +262,27 @@
 <div class="p-4 sm:px-8">
     <!-- Controls -->
     <div class="controls">
-        <div class="flex flex-wrap items-center gap-3">
-            <button id="zoom-in" class="btn">🔍 Zoom In</button>
-            <button id="zoom-out" class="btn">🔍 Zoom Out</button>
-            <button id="reset-zoom" class="btn">🔄 Reset</button>
-            <button id="center-tree" class="btn">🎯 Center</button>
-            <span class="text-sm text-gray-600">Zoom: <span id="zoom-level">100%</span></span>
+        <div class="flex flex-wrap items-center gap-4">
+            <button id="zoom-in" class="btn">
+                <span>🔍</span>
+                <span>Zoom In</span>
+            </button>
+            <button id="zoom-out" class="btn">
+                <span>🔍</span>
+                <span>Zoom Out</span>
+            </button>
+            <button id="reset-zoom" class="btn">
+                <span>🔄</span>
+                <span>Reset</span>
+            </button>
+            <button id="center-tree" class="btn">
+                <span>🎯</span>
+                <span>Center</span>
+            </button>
+            <div class="flex items-center gap-2 ml-auto px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-sm font-medium text-gray-700">Zoom:</span>
+                <span id="zoom-level" class="text-sm font-semibold text-indigo-600">100%</span>
+            </div>
         </div>
     </div>
 
