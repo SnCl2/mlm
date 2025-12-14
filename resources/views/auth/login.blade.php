@@ -40,10 +40,10 @@
   <!-- BRAND -->
   <div class="text-center mb-8">
     <div class="inline-flex items-center justify-center mb-4">
-      <img src="{{ asset('storage/logo.png') }}" 
-           alt="Logo" 
-           class="h-16 w-auto object-contain"
-           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <img src="{{ asset('public/storage/logo.png') }}" 
+            alt="Logo" 
+            class="h-[200px] w-[200px] object-contain"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
       <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white" style="display: none;">
         <i class="fas fa-network-wired text-xl"></i>
       </div>
