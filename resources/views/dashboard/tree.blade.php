@@ -272,15 +272,15 @@
 @section('content')
 <div class="p-4 sm:px-8">
     <!-- Controls -->
-    <div class="controls">
+    <div class="controls" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
         <div class="flex flex-wrap items-center gap-3">
-            <button id="zoom-in" class="btn btn-primary">Zoom In</button>
-            <button id="zoom-out" class="btn btn-secondary">Zoom Out</button>
-            <button id="reset-zoom" class="btn btn-warning">Reset</button>
-            <button id="center-tree" class="btn btn-info">Center</button>
+            <button id="zoom-in" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #3b82f6; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#2563eb'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(59, 130, 246, 0.3)';" onmouseout="this.style.backgroundColor='#3b82f6'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Zoom In</button>
+            <button id="zoom-out" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #6b7280; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#4b5563'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(107, 114, 128, 0.3)';" onmouseout="this.style.backgroundColor='#6b7280'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Zoom Out</button>
+            <button id="reset-zoom" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #f59e0b; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#d97706'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(245, 158, 11, 0.3)';" onmouseout="this.style.backgroundColor='#f59e0b'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Reset</button>
+            <button id="center-tree" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #10b981; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#059669'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(16, 185, 129, 0.3)';" onmouseout="this.style.backgroundColor='#10b981'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Center</button>
             <div class="flex items-center gap-2 ml-auto px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
                 <span class="text-sm font-medium text-gray-700">Zoom:</span>
-                <span id="zoom-level" class="text-sm font-semibold text-indigo-600">100%</span>
+                <span id="zoom-level" style="font-weight: 600; color: #667eea; font-size: 15px;">100%</span>
             </div>
         </div>
     </div>
