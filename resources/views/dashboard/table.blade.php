@@ -1,218 +1,207 @@
-
 @extends('layout.app')
-@section('title','Downline Structure')
 
-@push('styles')
-<style>
-body{
-    background:#f8fafc;
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
-    color:#0f172a;
-}
-.container-xl{
-    max-width:1400px;
-    margin:auto;
-    padding:24px;
-}
-
-/* Header */
-.page-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:24px;
-}
-.page-header h1{
-    font-size:26px;
-    font-weight:600;
-}
-.page-header p{
-    color:#64748b;
-    margin-top:4px;
-}
-
-/* Stats */
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:16px;
-    margin-bottom:24px;
-}
-.stat{
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:12px;
-    padding:16px;
-}
-.stat span{
-    font-size:13px;
-    color:#64748b;
-}
-.stat strong{
-    display:block;
-    font-size:24px;
-    margin-top:4px;
-}
-
-/* Filters */
-.filters{
-    display:flex;
-    gap:12px;
-    flex-wrap:wrap;
-    background:#fff;
-    padding:16px;
-    border-radius:12px;
-    border:1px solid #e5e7eb;
-    margin-bottom:16px;
-}
-.filters input,.filters select{
-    padding:10px 12px;
-    border-radius:8px;
-    border:1px solid #d1d5db;
-    font-size:14px;
-}
-
-/* Table */
-.table-box{
-    background:#fff;
-    border-radius:14px;
-    border:1px solid #e5e7eb;
-    overflow:hidden;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-thead{
-    background:#f1f5f9;
-}
-th{
-    padding:14px;
-    font-size:12px;
-    text-transform:uppercase;
-    color:#64748b;
-    text-align:left;
-}
-td{
-    padding:14px;
-    border-top:1px solid #e5e7eb;
-    font-size:14px;
-}
-tr:hover{
-    background:#f8fafc;
-}
-
-/* User */
-.user{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-.user img{
-    width:40px;
-    height:40px;
-    border-radius:10px;
-}
-.user small{
-    display:block;
-    color:#64748b;
-}
-
-/* Badges */
-.badge{
-    padding:4px 10px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:500;
-}
-.badge.active{background:#dcfce7;color:#166534;}
-.badge.inactive{background:#fee2e2;color:#991b1b;}
-
-.points{
-    font-weight:600;
-}
-.points.left{color:#2563eb;}
-.points.right{color:#7c3aed;}
-</style>
-@endpush
+@section('title', 'Downline Structure')
 
 @section('content')
-<div class="container-xl">
 
-    <!-- Header -->
-    <div class="page-header">
-        <div>
-            <h1>Downline Structure</h1>
-            <p>Binary network overview & performance</p>
-        </div>
-        <a href="{{ url()->previous() }}">← Back</a>
+<div style="
+    max-width:1400px;
+    margin:0 auto;
+    padding:24px;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto;
+    background:#f8fafc;
+    color:#0f172a;
+">
+
+    {{-- Header --}}
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:26px;font-weight:600;margin:0;">
+            Downline Structure
+        </h1>
+        <p style="margin:6px 0 0;color:#64748b;">
+            Network hierarchy overview
+        </p>
+        <a href="{{ url()->previous() }}" style="
+            display:inline-block;
+            margin-top:10px;
+            font-size:14px;
+            color:#2563eb;
+            text-decoration:none;
+        ">← Back</a>
     </div>
 
-    <!-- Stats -->
+    {{-- Success Message --}}
+    @if(session('success'))
+        <div style="
+            background:#dcfce7;
+            border:1px solid #86efac;
+            color:#166534;
+            padding:12px 16px;
+            border-radius:8px;
+            margin-bottom:20px;
+            font-size:14px;
+        ">
+            {{ session('success') }}
+        </div>
+    @endif
 
+    {{-- Filters --}}
+    <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        padding:16px;
+        margin-bottom:16px;
+    ">
+        <input id="searchInput" type="text" placeholder="Search name / code"
+            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;min-width:220px;">
 
-    <!-- Filters -->
-    <div class="filters">
-        <input type="text" placeholder="Search name / code" id="searchInput">
-        <select id="statusFilter">
+        <select id="statusFilter"
+            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
             <option value="">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
         </select>
-        <select id="levelFilter">
+
+        <select id="levelFilter"
+            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
             <option value="">All Levels</option>
-            @foreach(range(0,20) as $l)
-                <option value="{{ $l }}">Level {{ $l }}</option>
+            @foreach(range(1,20) as $lvl)
+                <option value="{{ $lvl }}">Level {{ $lvl }}</option>
             @endforeach
         </select>
     </div>
 
-    <!-- Table -->
-    <div class="table-box">
-        <table>
-            <thead>
+    {{-- Table --}}
+    <div style="
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        overflow:auto;
+    ">
+        <table style="width:100%;border-collapse:collapse;">
+            <thead style="background:#f1f5f9;">
                 <tr>
-                    <th>Level</th>
-                    <th>User</th>
-                    <th>Referred</th>
-                    <th>Parent</th>
-                    <th>Status</th>
-                    <th>Left</th>
-                    <th>Right</th>
-                    <th>Left Users</th>
-                    <th>Right Users</th>
+                    @foreach([
+                        'Level','User','Referred By','Parent',
+                        'Status','Left Points','Right Points',
+                        'Left Users','Right Users'
+                    ] as $head)
+                        <th style="
+                            padding:14px;
+                            text-align:left;
+                            font-size:12px;
+                            text-transform:uppercase;
+                            color:#64748b;
+                            border-bottom:1px solid #e5e7eb;
+                        ">{{ $head }}</th>
+                    @endforeach
                 </tr>
             </thead>
+
             <tbody id="tableBody">
-                @foreach($tableData as $row)
-                <tr>
-                    <td>{{ $row['level'] }}</td>
-                    <td>
-                        <div class="user">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($row['name']) }}">
+            @forelse($tableData as $row)
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:14px;font-weight:600;">
+                        {{ $row['level'] }}
+                    </td>
+
+                    <td style="padding:14px;">
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <img
+                                src="{{ $row['image'] ? asset('storage/'.$row['image']) : 'https://ui-avatars.com/api/?name='.urlencode($row['name']) }}"
+                                onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($row['name']) }}'"
+                                style="width:40px;height:40px;border-radius:10px;"
+                            >
                             <div>
-                                {{ $row['name'] }}
-                                <small>{{ $row['referral_code'] }}</small>
+                                <div style="font-weight:500;">{{ $row['name'] }}</div>
+                                <div style="font-size:12px;color:#64748b;">
+                                    {{ $row['referral_code'] }}
+                                </div>
                             </div>
                         </div>
                     </td>
-                    <td>{{ $row['referred_by'] ?? '—' }}</td>
-                    <td>{{ $row['parent'] ?? '—' }}</td>
-                    <td>
-                        <span class="badge {{ $row['status']=='active'?'active':'inactive' }}">
-                            {{ ucfirst($row['status']) }}
-                        </span>
+
+                    <td style="padding:14px;">{{ $row['referred_by'] ?? '—' }}</td>
+                    <td style="padding:14px;">{{ $row['parent'] ?? '—' }}</td>
+
+                    <td style="padding:14px;">
+                        @if(strtolower($row['status']) === 'active')
+                            <span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:999px;font-size:12px;">
+                                Active
+                            </span>
+                        @else
+                            <span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:999px;font-size:12px;">
+                                Inactive
+                            </span>
+                        @endif
                     </td>
-                    <td class="points left">{{ $row['leftPoints'] }}</td>
-                    <td class="points right">{{ $row['rightPoints'] }}</td>
-                    <td>Active {{ $row['leftUsers']['active'] ?? 0 }}</td>
-                    <td>Active {{ $row['rightUsers']['active'] ?? 0 }}</td>
+
+                    <td style="padding:14px;font-weight:600;color:#2563eb;">
+                        {{ number_format($row['leftPoints']) }}
+                    </td>
+
+                    <td style="padding:14px;font-weight:600;color:#7c3aed;">
+                        {{ number_format($row['rightPoints']) }}
+                    </td>
+
+                    <td style="padding:14px;font-size:13px;">
+                        @if(is_array($row['leftUsers']))
+                            A: {{ $row['leftUsers']['active'] ?? 0 }},
+                            I: {{ $row['leftUsers']['inactive'] ?? 0 }}
+                        @else
+                            {{ $row['leftUsers'] }}
+                        @endif
+                    </td>
+
+                    <td style="padding:14px;font-size:13px;">
+                        @if(is_array($row['rightUsers']))
+                            A: {{ $row['rightUsers']['active'] ?? 0 }},
+                            I: {{ $row['rightUsers']['inactive'] ?? 0 }}
+                        @else
+                            {{ $row['rightUsers'] }}
+                        @endif
+                    </td>
                 </tr>
-                @endforeach
+            @empty
+                <tr>
+                    <td colspan="9" style="padding:40px;text-align:center;color:#64748b;">
+                        No data available
+                    </td>
+                </tr>
+            @endforelse
             </tbody>
         </table>
     </div>
-
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('searchInput');
+    const status = document.getElementById('statusFilter');
+    const level  = document.getElementById('levelFilter');
+    const rows   = document.querySelectorAll('#tableBody tr');
+
+    function filter() {
+        rows.forEach(r => {
+            const text = r.innerText.toLowerCase();
+            const s = status.value.toLowerCase();
+            const l = level.value;
+
+            let show = true;
+            if (search.value && !text.includes(search.value.toLowerCase())) show = false;
+            if (s && !text.includes(s)) show = false;
+            if (l && !text.includes(' ' + l)) show = false;
+
+            r.style.display = show ? '' : 'none';
+        });
+    }
+
+    [search, status, level].forEach(el => el.addEventListener('input', filter));
+});
+</script>
+
 @endsection
