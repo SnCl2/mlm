@@ -4,24 +4,54 @@
 
 @push('styles')
 <style>
+    /* Modern Page Layout */
+    .tree-page-wrapper {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .tree-page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .tree-page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .tree-page-header p {
+        font-size: 1rem;
+        opacity: 0.95;
+        margin: 0;
+    }
+
     .tree-container-wrapper {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
     }
 
     .tree-container {
         width: 100%;
-        height: 80vh;
+        height: 75vh;
         min-height: 600px;
-        background: #ffffff;
+        background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
         border: 2px solid #e2e8f0;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: auto;
         position: relative;
-        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.04);
     }
 
     .tree-container::-webkit-scrollbar {
@@ -63,36 +93,60 @@
 
     .node-rect {
         fill: #fff;
-        stroke-width: 2px;
+        stroke-width: 2.5px;
         stroke: #cbd5e1;
-        transition: all 0.3s ease;
-        rx: 8;
-        ry: 8;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        rx: 12;
+        ry: 12;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
     }
 
     .node-rect.active {
-        fill: #22c55e;
+        fill: url(#activeGradient);
         stroke: #16a34a;
-        filter: drop-shadow(0 4px 6px rgba(34, 197, 94, 0.3));
+        stroke-width: 3px;
+        filter: drop-shadow(0 6px 16px rgba(34, 197, 94, 0.4));
+    }
+
+    .node-rect.active:hover {
+        filter: drop-shadow(0 8px 20px rgba(34, 197, 94, 0.5));
+        transform: scale(1.05);
     }
 
     .node-rect.inactive {
-        fill: #ef4444;
+        fill: url(#inactiveGradient);
         stroke: #dc2626;
+        stroke-width: 3px;
+        filter: drop-shadow(0 6px 16px rgba(239, 68, 68, 0.4));
+    }
+
+    .node-rect.inactive:hover {
+        filter: drop-shadow(0 8px 20px rgba(239, 68, 68, 0.5));
+        transform: scale(1.05);
     }
 
     .node-rect.vacant {
-        fill: #3b82f6;
+        fill: url(#vacantGradient);
         stroke: #2563eb;
-        stroke-dasharray: 5,5;
-        filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.3));
+        stroke-width: 2.5px;
+        stroke-dasharray: 6,4;
+        filter: drop-shadow(0 6px 16px rgba(59, 130, 246, 0.4));
         cursor: pointer;
+        animation: pulseVacant 2s ease-in-out infinite;
     }
 
     .node-rect.vacant:hover {
-        fill: #2563eb;
+        fill: url(#vacantHoverGradient);
         stroke: #1d4ed8;
-        transform: scale(1.05);
+        stroke-width: 3px;
+        filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.6));
+        transform: scale(1.08);
+        animation: none;
+    }
+
+    @keyframes pulseVacant {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
     }
 
     .node-text {
@@ -130,14 +184,16 @@
 
     .link {
         fill: none;
-        stroke: #94a3b8;
-        stroke-width: 2px;
-        transition: stroke 0.3s ease;
+        stroke: #cbd5e1;
+        stroke-width: 2.5px;
+        transition: all 0.3s ease;
+        opacity: 0.7;
     }
 
     .link:hover {
-        stroke: #64748b;
-        stroke-width: 3px;
+        stroke: #94a3b8;
+        stroke-width: 3.5px;
+        opacity: 1;
     }
 
     .vacant-link {
@@ -148,178 +204,268 @@
     }
 
     .controls {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-        padding: 20px !important;
-        border-radius: 12px !important;
-        margin-bottom: 20px !important;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06) !important;
-        border: 1px solid #e2e8f0 !important;
+        background: #ffffff;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        backdrop-filter: blur(10px);
     }
 
     .controls .btn {
-        padding: 10px 20px !important;
-        margin: 0 !important;
-        border: none !important;
-        border-radius: 8px !important;
-        color: white !important;
-        cursor: pointer !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-        display: inline-block !important;
-        text-decoration: none !important;
-        line-height: 1.5 !important;
+        padding: 0.75rem 1.5rem;
+        margin: 0;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: inline-block;
+        text-decoration: none;
+        line-height: 1.5;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .controls .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .controls .btn:hover::before {
+        width: 300px;
+        height: 300px;
     }
 
     .controls .btn-primary {
-        background-color: #3b82f6 !important;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     }
 
     .controls .btn-primary:hover {
-        background-color: #2563eb !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3) !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
     }
 
     .controls .btn-secondary {
-        background-color: #6b7280 !important;
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     }
 
     .controls .btn-secondary:hover {
-        background-color: #4b5563 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px rgba(107, 114, 128, 0.3) !important;
+        background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 114, 128, 0.4);
     }
 
     .controls .btn-warning {
-        background-color: #f59e0b !important;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     }
 
     .controls .btn-warning:hover {
-        background-color: #d97706 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3) !important;
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
     }
 
     .controls .btn-info {
-        background-color: #10b981 !important;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
 
     .controls .btn-info:hover {
-        background-color: #059669 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3) !important;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
     }
 
     .controls .btn:active {
-        transform: translateY(0) !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .controls .btn:focus {
-        outline: none !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+    }
+
+    .zoom-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     #zoom-level {
-        font-weight: 600;
+        font-weight: 700;
         color: #667eea;
-        font-size: 15px;
+        font-size: 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .legend {
         display: flex;
-        gap: 20px;
-        margin-top: 15px;
-        padding: 15px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
     }
 
     .legend-item {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .legend-item:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .legend-color {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
         border: 2px solid;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+    }
+
+    .legend-item:hover .legend-color {
+        transform: scale(1.1);
     }
 
     .legend-color.active {
-        background: #22c55e;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
         border-color: #16a34a;
     }
 
     .legend-color.inactive {
-        background: #ef4444;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         border-color: #dc2626;
     }
 
     .legend-color.vacant {
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         border-color: #2563eb;
         border-style: dashed;
+    }
+
+    .legend-text {
+        font-size: 14px;
+        font-weight: 500;
+        color: #475569;
+    }
+
+    .legend-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 12px;
+        border-left: 4px solid #f59e0b;
+        margin-left: auto;
+    }
+
+    .legend-info-text {
+        font-size: 13px;
+        color: #92400e;
+        font-weight: 500;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="p-4 sm:px-8">
-    <!-- Controls -->
-    <div class="controls" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
+<div class="tree-page-wrapper">
+    <!-- Modern Header -->
+    <div class="tree-page-header">
+        <h1>🌳 Binary Tree Network</h1>
+        <p>Visualize and manage your referral network structure</p>
+    </div>
+
+    <!-- Modern Controls Card -->
+    <div class="controls">
         <div class="flex flex-wrap items-center gap-3">
-            <button id="zoom-in" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #3b82f6; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#2563eb'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(59, 130, 246, 0.3)';" onmouseout="this.style.backgroundColor='#3b82f6'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Zoom In</button>
-            <button id="zoom-out" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #6b7280; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#4b5563'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(107, 114, 128, 0.3)';" onmouseout="this.style.backgroundColor='#6b7280'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Zoom Out</button>
-            <button id="reset-zoom" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #f59e0b; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#d97706'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(245, 158, 11, 0.3)';" onmouseout="this.style.backgroundColor='#f59e0b'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Reset</button>
-            <button id="center-tree" style="padding: 10px 20px; margin: 0; border: none; border-radius: 8px; background-color: #10b981; color: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: inline-block; text-decoration: none; line-height: 1.5;" onmouseover="this.style.backgroundColor='#059669'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(16, 185, 129, 0.3)';" onmouseout="this.style.backgroundColor='#10b981'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-1px)';">Center</button>
-            <div class="flex items-center gap-2 ml-auto px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                <span class="text-sm font-medium text-gray-700">Zoom:</span>
-                <span id="zoom-level" style="font-weight: 600; color: #667eea; font-size: 15px;">100%</span>
+            <button id="zoom-in" class="btn btn-primary">Zoom In</button>
+            <button id="zoom-out" class="btn btn-secondary">Zoom Out</button>
+            <button id="reset-zoom" class="btn btn-warning">Reset</button>
+            <button id="center-tree" class="btn btn-info">Center</button>
+            <div class="zoom-indicator ml-auto">
+                <span style="font-size: 14px; font-weight: 500; color: #64748b;">Zoom:</span>
+                <span id="zoom-level">100%</span>
             </div>
         </div>
     </div>
 
-    <!-- Tree Container - Enhanced Styling -->
+    <!-- Tree Container - Modern Design -->
     <div class="tree-container-wrapper">
         <div class="tree-container" id="tree-container"></div>
     </div>
 
-    <!-- Legend -->
+    <!-- Modern Legend -->
     <div class="legend">
         <div class="legend-item">
             <div class="legend-color active"></div>
-            <span class="text-sm">Active Member</span>
+            <span class="legend-text">Active Member</span>
         </div>
         <div class="legend-item">
             <div class="legend-color inactive"></div>
-            <span class="text-sm">Inactive Member</span>
+            <span class="legend-text">Inactive Member</span>
         </div>
         <div class="legend-item">
             <div class="legend-color vacant"></div>
-            <span class="text-sm">Vacant Position</span>
+            <span class="legend-text">Vacant Position</span>
         </div>
-        <div class="legend-item ml-4 pl-4 border-l border-gray-300">
-            <span class="text-xs text-gray-600">
-                <i class="fas fa-info-circle mr-1"></i>
-                Click vacant to register | Right-click node to add user
-            </span>
+        <div class="legend-info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span class="legend-info-text">Click vacant to register | Right-click node to add user</span>
         </div>
     </div>
 </div>
 
-<!-- Add User Modal -->
-<div id="add-user-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">Add User Under <span id="parent-name-modal"></span></h2>
-            <button onclick="closeAddUserModal()" class="text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times text-xl"></i>
+<!-- Modern Add User Modal -->
+<div id="add-user-modal" class="fixed inset-0 z-50 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden" style="animation: fadeIn 0.3s ease;">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl transform transition-all" style="animation: slideUp 0.3s ease;">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Add New User</h2>
+                <p class="text-sm text-gray-500 mt-1">Under <span id="parent-name-modal" class="font-semibold text-gray-700"></span></p>
+            </div>
+            <button onclick="closeAddUserModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
             </button>
         </div>
         <form action="{{ route('register') }}" method="GET" id="add-user-form">
@@ -327,32 +473,50 @@
             <input type="hidden" name="side" id="modal-position">
             <input type="hidden" name="referred_by" value="{{ Auth::user()->referral_code }}">
             
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Parent User</label>
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm font-semibold text-gray-800" id="parent-info-display"></p>
-                    <p class="text-xs text-gray-500 mt-1" id="parent-code-display"></p>
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Parent User</label>
+                <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <p class="text-base font-semibold text-gray-800" id="parent-info-display"></p>
+                    <p class="text-sm text-gray-600 mt-1" id="parent-code-display"></p>
                 </div>
             </div>
             
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Position</label>
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm font-semibold text-gray-800" id="position-display"></p>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Position</label>
+                <div class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                    <p class="text-base font-bold text-purple-700" id="position-display"></p>
                 </div>
             </div>
             
-            <div class="flex gap-3 mt-6">
-                <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition-all">
-                    <i class="fas fa-user-plus mr-2"></i> Continue to Registration
+            <div class="flex gap-3 mt-8">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all transform hover:scale-105 hover:shadow-xl">
+                    Continue to Registration
                 </button>
-                <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                <button type="button" onclick="closeAddUserModal()" class="px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all">
                     Cancel
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from { 
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 @endsection
 
 @push('scripts')
@@ -397,6 +561,41 @@ document.addEventListener('DOMContentLoaded', function() {
         .append('svg')
         .attr('width', width)
         .attr('height', height);
+
+    // Add gradient definitions for modern node styling
+    const defs = svg.append('defs');
+    
+    // Active node gradient
+    const activeGradient = defs.append('linearGradient')
+        .attr('id', 'activeGradient')
+        .attr('x1', '0%').attr('y1', '0%')
+        .attr('x2', '0%').attr('y2', '100%');
+    activeGradient.append('stop').attr('offset', '0%').attr('stop-color', '#22c55e');
+    activeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#16a34a');
+    
+    // Inactive node gradient
+    const inactiveGradient = defs.append('linearGradient')
+        .attr('id', 'inactiveGradient')
+        .attr('x1', '0%').attr('y1', '0%')
+        .attr('x2', '0%').attr('y2', '100%');
+    inactiveGradient.append('stop').attr('offset', '0%').attr('stop-color', '#ef4444');
+    inactiveGradient.append('stop').attr('offset', '100%').attr('stop-color', '#dc2626');
+    
+    // Vacant node gradient
+    const vacantGradient = defs.append('linearGradient')
+        .attr('id', 'vacantGradient')
+        .attr('x1', '0%').attr('y1', '0%')
+        .attr('x2', '0%').attr('y2', '100%');
+    vacantGradient.append('stop').attr('offset', '0%').attr('stop-color', '#3b82f6');
+    vacantGradient.append('stop').attr('offset', '100%').attr('stop-color', '#2563eb');
+    
+    // Vacant hover gradient
+    const vacantHoverGradient = defs.append('linearGradient')
+        .attr('id', 'vacantHoverGradient')
+        .attr('x1', '0%').attr('y1', '0%')
+        .attr('x2', '0%').attr('y2', '100%');
+    vacantHoverGradient.append('stop').attr('offset', '0%').attr('stop-color', '#2563eb');
+    vacantHoverGradient.append('stop').attr('offset', '100%').attr('stop-color', '#1d4ed8');
 
     const g = svg.append('g');
 
@@ -544,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .attr('class', 'node')
         .attr('transform', d => `translate(${d.y},${d.x})`);
 
-    // Add rectangles instead of circles
+    // Add rectangles with modern gradients
     nodes.append('rect')
         .attr('class', d => {
             if (d.data.is_vacant) return 'node-rect vacant';
@@ -555,15 +754,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .attr('x', -config.nodeWidth / 2)
         .attr('y', -config.nodeHeight / 2)
         .style('fill', d => {
-            if (d.data.is_vacant) return '#3b82f6';
-            return d.data.is_active ? '#22c55e' : '#ef4444';
+            if (d.data.is_vacant) return 'url(#vacantGradient)';
+            return d.data.is_active ? 'url(#activeGradient)' : 'url(#inactiveGradient)';
         })
         .style('stroke', d => {
             if (d.data.is_vacant) return '#2563eb';
             return d.data.is_active ? '#16a34a' : '#dc2626';
         })
-        .style('stroke-width', d => d.data.is_vacant ? '2px' : '3px')
-        .style('stroke-dasharray', d => d.data.is_vacant ? '5,5' : 'none')
+        .style('stroke-width', d => d.data.is_vacant ? '2.5px' : '3px')
+        .style('stroke-dasharray', d => d.data.is_vacant ? '6,4' : 'none')
         .attr('title', d => {
             if (d.data.is_vacant) return 'Click to register a new user here';
             return `Right-click or Ctrl+Click to add user under ${d.data.name}`;
