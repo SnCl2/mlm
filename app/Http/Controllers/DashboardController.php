@@ -81,6 +81,11 @@ class DashboardController extends Controller
         if (empty($userIds)) {
             return null;
         }
+        
+        // Ensure the starting user is always included (in case it wasn't added)
+        if (!in_array($userId, $userIds)) {
+            array_unshift($userIds, $userId);
+        }
 
         // Step 2: Load all users with relationships in one query
         $users = User::with(['binaryNode', 'binaryWallet', 'kyc'])
@@ -196,15 +201,16 @@ class DashboardController extends Controller
         $queue = [[$rootUserId, 0]];
         $visited = [];
 
+        // Always include the root user first
+        $visited[$rootUserId] = true;
+        $userIds[] = $rootUserId;
+
         while (!empty($queue)) {
             [$currentUserId, $depth] = array_shift($queue);
 
-            if ($depth >= $maxDepth || isset($visited[$currentUserId])) {
+            if ($depth >= $maxDepth) {
                 continue;
             }
-
-            $visited[$currentUserId] = true;
-            $userIds[] = $currentUserId;
 
             // Get children IDs directly from binary_nodes table
             // If multiple children exist for same position, get the oldest one (first created)
@@ -225,6 +231,8 @@ class DashboardController extends Controller
 
             foreach ($childNodes as $childId) {
                 if ($childId && !isset($visited[$childId])) {
+                    $visited[$childId] = true;
+                    $userIds[] = $childId;
                     $queue[] = [$childId, $depth + 1];
                 }
             }
