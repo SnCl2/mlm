@@ -52,13 +52,15 @@ class CreateSequentialUsers extends Command
         $this->info("Default Password: {$defaultPassword}");
         $this->newLine();
 
-        DB::beginTransaction();
+        $users = [];
+        $parentUser = null;
+        $createdCount = 0;
+        $failedCount = 0;
 
-        try {
-            $users = [];
-            $parentUser = null;
-
-            for ($i = 1; $i <= $count; $i++) {
+        for ($i = 1; $i <= $count; $i++) {
+            try {
+                DB::beginTransaction();
+                
                 if ($i === 1) {
                     // First user is root
                     $parentUser = $this->createRootUser($i, $namePrefix, $defaultPassword, $product);
@@ -74,12 +76,34 @@ class CreateSequentialUsers extends Command
                     // Next user's parent is this user
                     $parentUser = $user;
                 }
+                
+                DB::commit();
+                $createdCount++;
+                
+                // Reconnect to prevent MySQL timeout
+                DB::reconnect();
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $failedCount++;
+                $this->error("❌ [{$i}/{$count}] Failed to create user: " . $e->getMessage());
+                
+                // If we can't create a user, we can't continue the chain
+                if ($i > 1) {
+                    $this->warn("⚠️  Stopping creation chain. Created {$createdCount} users before failure.");
+                    break;
+                }
             }
-
-            DB::commit();
+        }
+        
+        $this->newLine();
+        
+        if ($createdCount > 0) {
+            $this->info("✅ Successfully created {$createdCount} users!");
+            if ($failedCount > 0) {
+                $this->warn("⚠️  Failed to create {$failedCount} users.");
+            }
             
-            $this->newLine();
-            $this->info("✅ Successfully created {$count} users!");
             $this->newLine();
             $this->table(
                 ['#', 'Name', 'Email', 'Referral Code', 'Parent', 'Position', 'Status'],
@@ -105,15 +129,12 @@ class CreateSequentialUsers extends Command
                     ];
                 }, $users, array_keys($users))
             );
-
-            return 0;
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $this->error("❌ Error: " . $e->getMessage());
-            $this->error("Transaction rolled back. No users were created.");
+        } else {
+            $this->error("❌ No users were created!");
             return 1;
         }
+
+        return $failedCount > 0 ? 1 : 0;
     }
 
     private function createRootUser($index, $prefix, $password, $product)
