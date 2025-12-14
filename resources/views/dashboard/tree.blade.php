@@ -161,54 +161,63 @@
         margin: 0;
         border: none;
         border-radius: 8px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         cursor: pointer;
         font-size: 14px;
         font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        position: relative;
-        overflow: hidden;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: inline-block;
     }
 
-    .btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+    .btn-primary {
+        background-color: #3b82f6;
     }
 
-    .btn:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+    .btn-primary:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
     }
 
-    .btn:hover::before {
-        width: 300px;
-        height: 300px;
+    .btn-secondary {
+        background-color: #6b7280;
+    }
+
+    .btn-secondary:hover {
+        background-color: #4b5563;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-warning {
+        background-color: #f59e0b;
+    }
+
+    .btn-warning:hover {
+        background-color: #d97706;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-info {
+        background-color: #10b981;
+    }
+
+    .btn-info:hover {
+        background-color: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
     }
 
     .btn:active {
         transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .btn:focus {
         outline: none;
-        ring: 2px;
-        ring-color: #667eea;
-        ring-offset: 2px;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
 
     #zoom-level {
@@ -262,23 +271,11 @@
 <div class="p-4 sm:px-8">
     <!-- Controls -->
     <div class="controls">
-        <div class="flex flex-wrap items-center gap-4">
-            <button id="zoom-in" class="btn">
-                <span>🔍</span>
-                <span>Zoom In</span>
-            </button>
-            <button id="zoom-out" class="btn">
-                <span>🔍</span>
-                <span>Zoom Out</span>
-            </button>
-            <button id="reset-zoom" class="btn">
-                <span>🔄</span>
-                <span>Reset</span>
-            </button>
-            <button id="center-tree" class="btn">
-                <span>🎯</span>
-                <span>Center</span>
-            </button>
+        <div class="flex flex-wrap items-center gap-3">
+            <button id="zoom-in" class="btn btn-primary">Zoom In</button>
+            <button id="zoom-out" class="btn btn-secondary">Zoom Out</button>
+            <button id="reset-zoom" class="btn btn-warning">Reset</button>
+            <button id="center-tree" class="btn btn-info">Center</button>
             <div class="flex items-center gap-2 ml-auto px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
                 <span class="text-sm font-medium text-gray-700">Zoom:</span>
                 <span id="zoom-level" class="text-sm font-semibold text-indigo-600">100%</span>
