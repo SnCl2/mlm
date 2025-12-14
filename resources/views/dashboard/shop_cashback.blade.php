@@ -2,64 +2,120 @@
 
 @section('title', 'Shop Cashback')
 
-
 @section('content')
 
-  <div class="max-w-6xl mx-auto p-6">
-    <!-- Header -->
-    <h1 class="text-3xl font-bold text-[var(--primary)] mb-6 flex items-center">
-      <i class="fas fa-store mr-3"></i> Shop Cashback
-    </h1>
+<div class="max-w-7xl mx-auto px-6 py-8">
 
-    <!-- Summary Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white shadow rounded-lg p-6 text-center">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Cashback Collected</h2>
-        <p class="text-2xl font-bold text-[var(--primary)]">₹ {{ number_format($totalCashback, 2) }}</p>
-      </div>
-      <div class="bg-white shadow rounded-lg p-6 text-center">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Transactions</h2>
-        <p class="text-2xl font-bold text-[var(--primary)]">{{ $totalTransactions }}</p>
-      </div>
-      <div class="bg-white shadow rounded-lg p-6 text-center">
-        <h2 class="text-lg font-semibold text-gray-700 mb-4">Your QR Code</h2>
-        <img src="{{ $qrCodeUrl }}" alt="QR Code" class="mx-auto">
-        <p class="mt-2 text-sm text-gray-500">Scan to earn cashback</p>
-      </div>
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-store text-[var(--primary)]"></i>
+                Shop Cashback
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Track your cashback earnings and purchase history
+            </p>
+        </div>
+
+        <a href="{{ url()->previous() }}"
+           class="text-sm text-[var(--primary)] hover:underline font-medium">
+            ← Back
+        </a>
     </div>
 
-    <!-- Purchase History -->
-    <div class="bg-white shadow rounded-lg p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-        <i class="fas fa-receipt mr-2 text-[var(--primary)]"></i> Purchase History
-      </h2>
+    {{-- SUMMARY CARDS --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <thead>
-            <tr class="bg-[var(--primary-light)] text-gray-700">
-              <th class="px-4 py-2 text-left">Date</th>
-              <th class="px-4 py-2 text-left">Store</th>
-              <th class="px-4 py-2 text-right">Amount (₹)</th>
+        {{-- TOTAL CASHBACK --}}
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">Total Cashback</span>
+                <i class="fas fa-wallet text-[var(--primary)]"></i>
+            </div>
+            <div class="mt-4 text-3xl font-bold text-gray-900">
+                ₹ {{ number_format($totalCashback, 2) }}
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+                Lifetime cashback earned
+            </p>
+        </div>
 
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @foreach ($transactions as $txn)
-            <tr>
-              <td class="px-4 py-2">{{ $txn->created_at->format('Y-m-d') }}</td>
-              <td class="px-4 py-2">{{ $txn->shop->name ?? 'N/A' }}</td>
-              <td class="px-4 py-2 text-right">{{ $txn->purchase_amount }}</td>
+        {{-- TOTAL TRANSACTIONS --}}
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">Total Transactions</span>
+                <i class="fas fa-receipt text-[var(--primary)]"></i>
+            </div>
+            <div class="mt-4 text-3xl font-bold text-gray-900">
+                {{ $totalTransactions }}
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+                Completed purchases
+            </p>
+        </div>
 
-            </tr>
-            @endforeach
+        {{-- QR CODE --}}
+        <div class="bg-white border border-gray-200 rounded-xl p-6 text-center">
+            <div class="text-sm text-gray-500 mb-3">
+                Your Cashback QR
+            </div>
+            <img src="{{ $qrCodeUrl }}"
+                 alt="QR Code"
+                 class="mx-auto w-32 h-32 rounded-lg border">
+            <p class="text-xs text-gray-500 mt-3">
+                Scan at shop to earn cashback
+            </p>
+        </div>
 
-            <!-- Add more rows as needed -->
-          </tbody>
-        </table>
-      </div>
     </div>
-  </div>
 
+    {{-- PURCHASE HISTORY --}}
+    <div class="bg-white border border-gray-200 rounded-xl">
+
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-receipt text-[var(--primary)]"></i>
+                Purchase History
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Date</th>
+                        <th class="px-6 py-3 text-left">Store</th>
+                        <th class="px-6 py-3 text-right">Amount (₹)</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200">
+                    @forelse ($transactions as $txn)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-gray-700">
+                                {{ $txn->created_at->format('d M Y') }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900">
+                                {{ $txn->shop->name ?? 'N/A' }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-gray-900">
+                                ₹ {{ number_format($txn->purchase_amount, 2) }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-6 py-10 text-center text-gray-500">
+                                No transactions found
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
 
 @endsection
