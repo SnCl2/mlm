@@ -196,12 +196,7 @@ tr:hover{
     </div>
 
     <!-- Stats -->
-    <div class="stats">
-        <div class="stat"><span>Total Members</span><strong>{{ $totalUsers }}</strong></div>
-        <div class="stat"><span>Active Members</span><strong>{{ $activeUsers }}</strong></div>
-        <div class="stat"><span>Left Points</span><strong>{{ $totalLeftPoints }}</strong></div>
-        <div class="stat"><span>Right Points</span><strong>{{ $totalRightPoints }}</strong></div>
-    </div>
+
 
     <!-- Filters -->
     <div class="filters">
