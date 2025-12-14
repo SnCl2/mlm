@@ -34,30 +34,45 @@
     <form method="POST" action="{{ route('register') }}" class="space-y-5">
       @csrf
 
-      <input name="name" type="text" placeholder="Full Name" required class="input">
-      <input name="phone" type="text" placeholder="Phone Number" class="input">
-      <input name="email" type="email" placeholder="Email Address" required class="input">
-      <input name="email_confirmation" type="email" placeholder="Confirm Email Address"
-             required class="input @error('email_confirmation') border-red-500 @enderror">
+      {{-- NAME & PHONE ON SAME ROW --}}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input name="name" type="text" placeholder="Full Name" required class="input">
+        <input name="phone" type="text" placeholder="Phone Number" class="input">
+      </div>
 
-      <input name="referred_by" id="referred_by" type="text"
-             placeholder="Referral ID"
-             value="{{ old('referred_by', Auth::check() ? Auth::user()->referral_code : request('ref')) }}"
-             required class="input">
-      <div id="referred-name" class="mt-1 text-sm"></div>
+      {{-- EMAIL & CONFIRM EMAIL ON SAME ROW --}}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input name="email" type="email" placeholder="Email Address" required class="input">
+        <input name="email_confirmation" type="email" placeholder="Confirm Email Address"
+               required class="input @error('email_confirmation') border-red-500 @enderror">
+      </div>
 
-      <input name="place_under" id="place_under" type="text"
-             placeholder="Placement ID"
-             value="{{ old('place_under', request('place_under')) }}"
-             required class="input">
-      <div id="placement-name" class="mt-1 text-sm"></div>
+      {{-- REFERRAL + PLACEMENT + SIDE IN A GRID --}}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <input name="referred_by" id="referred_by" type="text"
+                 placeholder="Referral ID"
+                 value="{{ old('referred_by', Auth::check() ? Auth::user()->referral_code : request('ref')) }}"
+                 required class="input">
+          <div id="referred-name" class="mt-1 text-xs text-gray-500"></div>
+        </div>
 
-      <select name="side" required class="input">
-        <option value="">Placement Side</option>
-        <option value="left" {{ old('side', request('side', request('position'))) == 'left' ? 'selected' : '' }}>Left</option>
-        <option value="right" {{ old('side', request('side', request('position'))) == 'right' ? 'selected' : '' }}>Right</option>
-      </select>
+        <div>
+          <input name="place_under" id="place_under" type="text"
+                 placeholder="Placement ID"
+                 value="{{ old('place_under', request('place_under')) }}"
+                 required class="input">
+          <div id="placement-name" class="mt-1 text-xs text-gray-500"></div>
+        </div>
 
+        <select name="side" required class="input">
+          <option value="">Side</option>
+          <option value="left" {{ old('side', request('side', request('position'))) == 'left' ? 'selected' : '' }}>Left</option>
+          <option value="right" {{ old('side', request('side', request('position'))) == 'right' ? 'selected' : '' }}>Right</option>
+        </select>
+      </div>
+
+      {{-- PRODUCT SELECTION --}}
       <div>
         <p class="text-sm font-semibold text-gray-700 mb-2">Choose a Product</p>
         <div class="space-y-3">
