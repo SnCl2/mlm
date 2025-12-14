@@ -95,7 +95,10 @@ class DashboardController extends Controller
 
         // Step 4: Build parent-child map for quick lookup
         // Get ALL children of nodes in the tree, even if child user isn't in userIds
-        $allChildNodes = BinaryNode::whereIn('parent_id', $userIds)->get();
+        // Exclude self-referencing nodes (where user_id = parent_id) - these are root nodes
+        $allChildNodes = BinaryNode::whereIn('parent_id', $userIds)
+            ->whereColumn('user_id', '!=', 'parent_id') // Exclude self-referencing root nodes
+            ->get();
         
         $childrenMap = $allChildNodes->groupBy('parent_id')
             ->map(function ($nodes) {
@@ -206,7 +209,9 @@ class DashboardController extends Controller
             // Get children IDs directly from binary_nodes table
             // If multiple children exist for same position, get the oldest one (first created)
             // This handles data integrity issues where multiple children were added to same position
+            // Exclude self-referencing nodes (where user_id = parent_id) - these are root nodes
             $childNodes = BinaryNode::where('parent_id', $currentUserId)
+                ->whereColumn('user_id', '!=', 'parent_id') // Exclude self-referencing root nodes
                 ->orderBy('id', 'asc') // Get oldest first
                 ->get()
                 ->groupBy('position')
