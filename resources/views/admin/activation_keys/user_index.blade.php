@@ -1,151 +1,112 @@
 @extends('layout.app')
 
 @section('content')
-<div class="container mx-auto py-8 px-4" x-data="{ tab: 'assigned' }">
-    <h1 class="text-2xl font-bold text-orange-500 mb-6">My Activation Keys</h1>
+<div class="max-w-7xl mx-auto px-4 py-8" x-data="{ tab: 'assigned' }">
 
-    @if(session('success'))
-        <div class="bg-green-100 text-green-800 p-3 rounded mb-4">{{ session('success') }}</div>
-    @endif
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-slate-800">My Activation Keys</h1>
+            <p class="text-sm text-slate-500">Manage, use or transfer your PINs</p>
+        </div>
 
-    <!-- Tabs -->
-    <div class="flex border-b mb-6">
-        <button @click="tab = 'assigned'"
-            class="px-4 py-2 font-semibold"
-            :class="tab === 'assigned' ? 'border-b-2 border-orange-600 text-orange-600' : 'text-gray-600'">
+        @if(session('success'))
+            <div class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-xl text-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+    </div>
+
+    {{-- TABS --}}
+    <div class="flex gap-2 mb-6">
+        <button @click="tab='assigned'"
+            class="tab-btn"
+            :class="tab==='assigned' ? 'tab-active' : 'tab-inactive'">
             Assigned to Me
         </button>
-        <button @click="tab = 'transferred'"
-            class="ml-4 px-4 py-2 font-semibold"
-            :class="tab === 'transferred' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'">
-            I Transferred
+        <button @click="tab='transferred'"
+            class="tab-btn"
+            :class="tab==='transferred' ? 'tab-active' : 'tab-inactive'">
+            Transferred by Me
         </button>
     </div>
 
-    <!-- ✅ Assigned Keys -->
-    <div x-show="tab === 'assigned'" x-cloak>
+    {{-- ASSIGNED --}}
+    <div x-show="tab==='assigned'" x-cloak>
+
         @if($activationKeys->count())
-        <!-- Bulk Transfer Button -->
-        <div class="mb-4 flex justify-end">
-            <button onclick="document.getElementById('bulk-transfer-modal').classList.remove('hidden')" 
-                class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md flex items-center gap-2">
-                <i class="fas fa-exchange-alt"></i>
+
+        {{-- BULK ACTION --}}
+        <div class="flex justify-end mb-4">
+            <button
+                onclick="document.getElementById('bulk-transfer-modal').classList.remove('hidden')"
+                class="btn-primary">
                 Bulk Transfer PINs
             </button>
         </div>
 
-        <!-- Bulk Transfer Modal -->
-        <div id="bulk-transfer-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
-            <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 class="text-lg font-bold mb-4">Bulk Transfer PINs</h2>
-                <form action="{{ route('activation-keys.bulk-transfer') }}" method="POST" onsubmit="return validateBulkTransferForm()">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium mb-1">Recipient Referral ID</label>
-                        <input type="text" id="bulk-referral" name="to_referral_code" class="w-full border rounded px-3 py-2 mt-1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium mb-1">Confirm Referral ID</label>
-                        <input type="text" id="bulk-referral-confirm" class="w-full border rounded px-3 py-2 mt-1" required>
-                    </div>
-                    <div class="mb-1 text-sm" id="bulk-name-display"></div>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium mb-1">Number of PINs to Transfer</label>
-                        <input type="number" id="bulk-count" name="count" min="1" max="1000" class="w-full border rounded px-3 py-2 mt-1" required>
-                        <p class="text-xs text-gray-500 mt-1">Enter the number of unused PINs you want to transfer</p>
-                    </div>
-                    <div class="mb-3 text-sm text-gray-600">
-                        <span id="available-pins-count">Loading available PINs...</span>
-                    </div>
-                    @if($errors->any())
-                        <div class="mb-3 text-red-600 text-sm">
-                            @foreach($errors->all() as $error)
-                                <p>{{ $error }}</p>
-                            @endforeach
-                        </div>
-                    @endif
-                    <div class="flex justify-between mt-4">
-                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Transfer</button>
-                        <button type="button" onclick="document.getElementById('bulk-transfer-modal').classList.add('hidden')" class="text-gray-600 px-4 py-2">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto bg-white rounded-lg shadow">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-100 text-left text-sm font-semibold text-gray-700">
+        {{-- TABLE --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
                     <tr>
-                        <th class="px-4 py-3">Key</th>
-                        <th class="px-4 py-3">Status</th>
-                        <th class="px-4 py-3">Used At</th>
-                        <th class="px-4 py-3">Used For</th>
-                        <th class="px-4 py-3">Actions</th>
+                        <th class="th">Key</th>
+                        <th class="th">Status</th>
+                        <th class="th">Used At</th>
+                        <th class="th">Used For</th>
+                        <th class="th text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 text-sm">
+                <tbody class="divide-y">
                     @foreach($activationKeys as $key)
-                    <tr>
-                        <td class="px-4 py-2 font-mono">{{ $key->key }}</td>
-                        <td class="px-4 py-2">
-                            <span class="px-2 py-1 rounded text-xs font-semibold
-                                {{ $key->status === 'fresh' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                    <tr class="hover:bg-slate-50">
+                        <td class="td font-mono">{{ $key->key }}</td>
+                        <td class="td">
+                            <span class="badge {{ $key->status === 'fresh' ? 'badge-green' : 'badge-red' }}">
                                 {{ ucfirst($key->status) }}
                             </span>
                         </td>
-                        <td class="px-4 py-2">{{ $key->used_at ?? '-' }}</td>
-                        <td class="px-4 py-2">{{ optional($key->usedFor)->name ?? '-' }}</td>
-                        <td class="px-4 py-2 space-x-2">
+                        <td class="td">{{ $key->used_at ?? '-' }}</td>
+                        <td class="td">{{ optional($key->usedFor)->name ?? '-' }}</td>
+                        <td class="td text-right space-x-2">
                             @if($key->status === 'fresh')
-                            <button onclick="document.getElementById('use-key-{{ $key->id }}').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">Use</button>
-                            <button onclick="document.getElementById('transfer-key-{{ $key->id }}').classList.remove('hidden')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded">Transfer</button>
+                                <button onclick="document.getElementById('use-key-{{ $key->id }}').classList.remove('hidden')" class="btn-sm btn-indigo">Use</button>
+                                <button onclick="document.getElementById('transfer-key-{{ $key->id }}').classList.remove('hidden')" class="btn-sm btn-amber">Transfer</button>
                             @endif
                         </td>
                     </tr>
 
-                    <!-- Use Key Modal -->
-                    <div id="use-key-{{ $key->id }}" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
-                        <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 class="text-lg font-bold mb-4">Use Activation Key</h2>
+                    {{-- USE MODAL --}}
+                    <div id="use-key-{{ $key->id }}" class="modal hidden">
+                        <div class="modal-card">
+                            <h2 class="modal-title">Use Activation Key</h2>
                             <form action="{{ route('activation-keys.use') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="key" value="{{ $key->key }}">
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium">Referral ID</label>
-                                    <input type="text" name="referral_code" id="use-referral-{{ $key->id }}" class="w-full border rounded px-3 py-2 mt-1" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium">Confirm Referral ID</label>
-                                    <input type="text" name="confirm_referral_code" class="w-full border rounded px-3 py-2 mt-1" required>
-                                </div>
-                                <div class="mb-1 text-sm" id="use-name-display-{{ $key->id }}"></div>
-                                <div class="flex justify-between mt-4">
-                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Confirm</button>
-                                    <button type="button" onclick="document.getElementById('use-key-{{ $key->id }}').classList.add('hidden')" class="text-gray-600">Cancel</button>
+                                <input type="text" name="referral_code" id="use-referral-{{ $key->id }}" placeholder="Referral ID" class="input" required>
+                                <input type="text" name="confirm_referral_code" placeholder="Confirm Referral ID" class="input mt-3" required>
+                                <div id="use-name-display-{{ $key->id }}" class="text-sm mt-1"></div>
+                                <div class="modal-actions">
+                                    <button class="btn-indigo">Confirm</button>
+                                    <button type="button" onclick="document.getElementById('use-key-{{ $key->id }}').classList.add('hidden')" class="btn-cancel">Cancel</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- Transfer Key Modal -->
-                    <div id="transfer-key-{{ $key->id }}" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden">
-                        <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 class="text-lg font-bold mb-4">Transfer Activation Key</h2>
+                    {{-- TRANSFER MODAL --}}
+                    <div id="transfer-key-{{ $key->id }}" class="modal hidden">
+                        <div class="modal-card">
+                            <h2 class="modal-title">Transfer Activation Key</h2>
                             <form action="{{ route('activation-keys.transfer') }}" method="POST" onsubmit="return validateTransferForm({{ $key->id }})">
                                 @csrf
                                 <input type="hidden" name="key" value="{{ $key->key }}">
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium">Recipient Referral ID</label>
-                                    <input type="text" id="referral-{{ $key->id }}" name="to_referral_code" class="w-full border rounded px-3 py-2 mt-1" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium">Confirm Referral ID</label>
-                                    <input type="text" id="referral-confirm-{{ $key->id }}" class="w-full border rounded px-3 py-2 mt-1" required>
-                                </div>
-                                <div class="mb-1 text-sm" id="transfer-name-display-{{ $key->id }}"></div>
-                                <div class="flex justify-between mt-4">
-                                    <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded">Transfer</button>
-                                    <button type="button" onclick="document.getElementById('transfer-key-{{ $key->id }}').classList.add('hidden')" class="text-gray-600">Cancel</button>
+                                <input type="text" id="referral-{{ $key->id }}" name="to_referral_code" placeholder="Recipient Referral ID" class="input" required>
+                                <input type="text" id="referral-confirm-{{ $key->id }}" placeholder="Confirm Referral ID" class="input mt-3" required>
+                                <div id="transfer-name-display-{{ $key->id }}" class="text-sm mt-1"></div>
+                                <div class="modal-actions">
+                                    <button class="btn-amber">Transfer</button>
+                                    <button type="button" onclick="document.getElementById('transfer-key-{{ $key->id }}').classList.add('hidden')" class="btn-cancel">Cancel</button>
                                 </div>
                             </form>
                         </div>
@@ -155,36 +116,33 @@
             </table>
         </div>
 
-        <div class="mt-4">
-            {{ $activationKeys->links() }}
-        </div>
+        <div class="mt-4">{{ $activationKeys->links() }}</div>
+
         @else
-        <p class="text-gray-600">You have no activation keys assigned.</p>
+            <p class="text-slate-500">No activation keys assigned.</p>
         @endif
     </div>
 
-    <!-- 🔁 Transferred Keys -->
-    <div x-show="tab === 'transferred'" x-cloak>
-        <div class="overflow-x-auto bg-white rounded-lg shadow">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-blue-100 text-left text-sm font-semibold text-gray-700">
+    {{-- TRANSFERRED --}}
+    <div x-show="tab==='transferred'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
                     <tr>
-                        <th class="px-4 py-3">Key</th>
-                        <th class="px-4 py-3">Transferred To</th>
-                        <th class="px-4 py-3">Transferred At</th>
+                        <th class="th">Key</th>
+                        <th class="th">Transferred To</th>
+                        <th class="th">Transferred At</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 text-sm">
+                <tbody class="divide-y">
                     @forelse($transfers as $transfer)
-                    <tr>
-                        <td class="px-4 py-2 font-mono">{{ $transfer->activationKey->key ?? '-' }}</td>
-                        <td class="px-4 py-2">{{ $transfer->toUser->name ?? '-' }}</td>
-                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($transfer->transferred_at)->format('d M Y h:i A') }}</td>
-                    </tr>
+                        <tr>
+                            <td class="td font-mono">{{ $transfer->activationKey->key ?? '-' }}</td>
+                            <td class="td">{{ $transfer->toUser->name ?? '-' }}</td>
+                            <td class="td">{{ \Carbon\Carbon::parse($transfer->transferred_at)->format('d M Y h:i A') }}</td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="3" class="text-center px-4 py-6 text-gray-500">You haven’t transferred any keys.</td>
-                    </tr>
+                        <tr><td colspan="3" class="td text-center text-slate-500 py-6">No transfers found</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -192,179 +150,27 @@
     </div>
 </div>
 
-<!-- Alpine.js -->
+{{-- STYLES --}}
+<style>
+.th{padding:12px 16px;text-align:left;font-weight:600}
+.td{padding:12px 16px}
+.tab-btn{padding:8px 16px;border-radius:999px;font-weight:600}
+.tab-active{background:#4f46e5;color:white}
+.tab-inactive{background:#e5e7eb;color:#475569}
+.badge{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-red{background:#fee2e2;color:#991b1b}
+.btn-primary{background:#4f46e5;color:white;padding:10px 18px;border-radius:12px;font-weight:600}
+.btn-sm{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600}
+.btn-indigo{background:#4f46e5;color:white}
+.btn-amber{background:#f59e0b;color:white}
+.input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #cbd5e1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal-card{background:white;padding:24px;border-radius:16px;width:100%;max-width:420px}
+.modal-title{font-weight:700;margin-bottom:16px}
+.modal-actions{display:flex;justify-content:space-between;margin-top:20px}
+.btn-cancel{color:#64748b}
+</style>
+
 <script src="https://unpkg.com/alpinejs" defer></script>
-
-<!-- Script for Referral Name & Validation -->
-<!--<script>-->
-<!--function validateTransferForm(keyId) {-->
-<!--    const original = document.getElementById(`referral-${keyId}`).value.trim();-->
-<!--    const confirm = document.getElementById(`referral-confirm-${keyId}`).value.trim();-->
-<!--    if (original !== confirm) {-->
-<!--        alert("Referral IDs do not match!");-->
-<!--        return false;-->
-<!--    }-->
-<!--    return true;-->
-<!--}-->
-
-<!--document.addEventListener('DOMContentLoaded', function () {-->
-<!--    @foreach ($activationKeys as $key)-->
-<!--        const transferInput = document.getElementById('referral-{{ $key->id }}');-->
-<!--        const transferNameDisplay = document.getElementById('transfer-name-display-{{ $key->id }}');-->
-<!--        if (transferInput) {-->
-<!--            transferInput.addEventListener('blur', () => fetchUserName(transferInput, transferNameDisplay));-->
-<!--        }-->
-
-<!--        const useInput = document.getElementById('use-referral-{{ $key->id }}');-->
-<!--        const useNameDisplay = document.getElementById('use-name-display-{{ $key->id }}');-->
-<!--        if (useInput) {-->
-<!--            useInput.addEventListener('blur', () => fetchUserName(useInput, useNameDisplay));-->
-<!--        }-->
-<!--    @endforeach-->
-<!--});-->
-
-<!--function fetchUserName(inputElement, displayElement) {-->
-<!--    const code = inputElement.value.trim();-->
-<!--    if (!code) {-->
-<!--        displayElement.textContent = "";-->
-<!--        return;-->
-<!--    }-->
-<!--    fetch(`/referral-user/${code}`)-->
-<!--        .then(response => {-->
-<!--            if (!response.ok) throw new Error();-->
-<!--            return response.json();-->
-<!--        })-->
-<!--        .then(data => {-->
-<!--            displayElement.textContent = "Referral belongs to: " + data.name;-->
-<!--            displayElement.classList.remove('text-red-500');-->
-<!--            displayElement.classList.add('text-green-600');-->
-<!--        })-->
-<!--        .catch(() => {-->
-<!--            displayElement.textContent = "User not found.";-->
-<!--            displayElement.classList.remove('text-green-600');-->
-<!--            displayElement.classList.add('text-red-500');-->
-<!--        });-->
-<!--}-->
-<!--</script>-->
-<script>
-function validateTransferForm(keyId) {
-    const original = document.getElementById(`referral-${keyId}`).value.trim();
-    const confirm = document.getElementById(`referral-confirm-${keyId}`).value.trim();
-
-    if (original !== confirm) {
-        alert("Referral IDs do not match!");
-        return false;
-    }
-    return true;
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    @foreach ($activationKeys as $key)
-        // Transfer
-        const transferInput{{ $key->id }} = document.getElementById('referral-{{ $key->id }}');
-        const transferNameDisplay{{ $key->id }} = document.getElementById('transfer-name-display-{{ $key->id }}');
-
-        if (transferInput{{ $key->id }}) {
-            transferInput{{ $key->id }}.addEventListener('blur', function () {
-                fetchUserName(transferInput{{ $key->id }}, transferNameDisplay{{ $key->id }});
-            });
-        }
-
-        // Use
-        const useInput{{ $key->id }} = document.getElementById('use-referral-{{ $key->id }}');
-        const useNameDisplay{{ $key->id }} = document.getElementById('use-name-display-{{ $key->id }}');
-
-        if (useInput{{ $key->id }}) {
-            useInput{{ $key->id }}.addEventListener('blur', function () {
-                fetchUserName(useInput{{ $key->id }}, useNameDisplay{{ $key->id }});
-            });
-        }
-    @endforeach
-});
-
-function fetchUserName(inputElement, displayElement) {
-    const code = inputElement.value.trim();
-    if (!code) {
-        displayElement.textContent = "";
-        return;
-    }
-
-    fetch(`/referral-user/${code}`)
-        .then(response => {
-            if (!response.ok) throw new Error('Not found');
-            return response.json();
-        })
-        .then(data => {
-            displayElement.textContent = "Referral belongs to: " + data.name;
-            displayElement.classList.remove('text-red-500');
-            displayElement.classList.add('text-green-600');
-        })
-        .catch(() => {
-            displayElement.textContent = "User not found.";
-            displayElement.classList.remove('text-green-600');
-            displayElement.classList.add('text-red-500');
-        });
-}
-
-// Bulk Transfer Functions
-function validateBulkTransferForm() {
-    const original = document.getElementById('bulk-referral').value.trim();
-    const confirm = document.getElementById('bulk-referral-confirm').value.trim();
-    const count = parseInt(document.getElementById('bulk-count').value);
-
-    if (original !== confirm) {
-        alert("Referral IDs do not match!");
-        return false;
-    }
-
-    if (!count || count < 1) {
-        alert("Please enter a valid number of PINs to transfer (minimum 1).");
-        return false;
-    }
-
-    return true;
-}
-
-// Update available PINs count
-function updateAvailablePinsCount() {
-    const freshCount = {{ $availablePinsCount ?? 0 }};
-    const countElement = document.getElementById('available-pins-count');
-    if (countElement) {
-        countElement.textContent = `Available unused PINs: ${freshCount}`;
-        if (freshCount === 0) {
-            countElement.classList.add('text-red-600', 'font-semibold');
-        } else {
-            countElement.classList.remove('text-red-600', 'font-semibold');
-            countElement.classList.add('text-green-600');
-        }
-    }
-}
-
-// Setup bulk transfer form handlers
-document.addEventListener('DOMContentLoaded', function () {
-    // Bulk transfer referral code lookup
-    const bulkReferralInput = document.getElementById('bulk-referral');
-    const bulkNameDisplay = document.getElementById('bulk-name-display');
-    
-    if (bulkReferralInput && bulkNameDisplay) {
-        bulkReferralInput.addEventListener('blur', function () {
-            fetchUserName(bulkReferralInput, bulkNameDisplay);
-        });
-    }
-
-    // Update available PINs count on page load
-    updateAvailablePinsCount();
-
-    // Update available PINs when modal opens
-    const bulkTransferModal = document.getElementById('bulk-transfer-modal');
-    if (bulkTransferModal) {
-        const openButton = document.querySelector('[onclick*="bulk-transfer-modal"]');
-        if (openButton) {
-            openButton.addEventListener('click', function() {
-                setTimeout(updateAvailablePinsCount, 100);
-            });
-        }
-    }
-});
-</script>
 @endsection
