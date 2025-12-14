@@ -517,10 +517,26 @@
                             </td>
                             <td>
                                 <div class="user-info">
+                                    @php
+                                        $fallbackUrl = 'https://ui-avatars.com/api/?name=' . urlencode($row['name']) . '&background=667eea&color=fff&size=128';
+                                        if ($row['image']) {
+                                            // Try multiple path variations
+                                            $imagePath = $row['image'];
+                                            $possiblePaths = [
+                                                asset('storage/' . $imagePath),
+                                                asset('public/storage/' . $imagePath),
+                                                url('storage/' . $imagePath),
+                                            ];
+                                            $imageUrl = $possiblePaths[0]; // Default to standard path
+                                        } else {
+                                            $imageUrl = $fallbackUrl;
+                                        }
+                                    @endphp
                                     <img class="user-avatar" 
-                                         src="{{ $row['image'] ? asset('storage/' . $row['image']) : 'https://ui-avatars.com/api/?name=' . urlencode($row['name']) . '&background=667eea&color=fff&size=128' }}" 
+                                         src="{{ $imageUrl }}" 
                                          alt="{{ $row['name'] }}"
-                                         onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($row['name']) }}&background=667eea&color=fff&size=128';">
+                                         onerror="this.src='{{ $fallbackUrl }}';"
+                                         loading="lazy">
                                     <div class="user-details">
                                         <h4>{{ $row['name'] }}</h4>
                                         <p>{{ $row['referral_code'] }}</p>
