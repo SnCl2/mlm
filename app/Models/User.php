@@ -191,17 +191,21 @@ class User extends Authenticatable
     
     public function getTotalWithdrawableBalance()
     {
+        // Use fresh data from database to avoid stale cache issues
         $mainWallet = $this->mainWallet;
-        $mainBalance = $mainWallet ? $mainWallet->balance : 0;
+        $mainBalance = $mainWallet ? $mainWallet->fresh()->balance : 0;
         
         // Income totals (for display purposes)
         $referralIncome = $this->referralIncomes()->sum('amount');
         $binaryIncome = $this->binaryIncomes()->sum('amount');
         $cashbackIncome = $this->cashbackIncomes()->sum('amount');
         
-        // Withdrawal stats
+        // Withdrawal stats - use fresh queries to avoid stale data
         $totalWithdrawn = $this->withdrawals()->where('status', 'approved')->sum('total_amount');
         $pendingWithdrawn = $this->withdrawals()->where('status', 'pending')->sum('total_amount');
+    
+        // Ensure available balance is never negative (safety check)
+        $availableBalance = max(0, $mainBalance - $pendingWithdrawn);
     
         return [
             'main_wallet' => $mainBalance,
@@ -211,7 +215,7 @@ class User extends Authenticatable
             'total_income' => $referralIncome + $binaryIncome + $cashbackIncome,
             'total_withdrawn' => $totalWithdrawn,
             'pending_withdrawn' => $pendingWithdrawn,
-            'available_balance' => $mainBalance - $pendingWithdrawn,
+            'available_balance' => $availableBalance,
         ];
     }
 

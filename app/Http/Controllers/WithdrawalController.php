@@ -15,7 +15,6 @@ class WithdrawalController extends Controller
     public function request(Request $request)
     {
         $user = Auth::user();
-        $available = $user->getTotalWithdrawableBalance();
     
         // Validate inputs
         $request->validate([
@@ -24,25 +23,42 @@ class WithdrawalController extends Controller
         ]);
     
         $amount = $request->amount;
-        $availableBalance = $available['available_balance'];
     
         if ($amount < 500) {
             return back()->with('error', 'Minimum ₹500 required to request withdrawal.');
         }
     
-        if ($amount > $availableBalance) {
-            return back()->with('error', 'Insufficient balance. Available: ₹' . number_format($availableBalance, 2));
-        }
-    
-        // Deduct from main wallet AT REQUEST TIME (atomic transaction)
+        // Use database transaction to ensure atomicity
+        // Note: lockForUpdate() only locks during the transaction, allowing multiple sequential requests
         DB::beginTransaction();
         try {
-            $mainWallet = MainWallet::firstOrCreate(['user_id' => $user->id], ['balance' => 0]);
+            // Lock the main wallet row for update to prevent race conditions during this transaction
+            // The lock is released after commit, allowing the next request to proceed
+            $mainWallet = MainWallet::where('user_id', $user->id)->lockForUpdate()->first();
             
-            if ($mainWallet->balance < $amount) {
+            if (!$mainWallet) {
+                $mainWallet = MainWallet::create(['user_id' => $user->id, 'balance' => 0]);
+            }
+            
+            // Calculate available balance WITHIN transaction using fresh data
+            // Available = Main Wallet Balance - Sum of ALL pending withdrawals
+            $mainBalance = $mainWallet->balance;
+            $pendingWithdrawn = Withdrawal::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->sum('total_amount');
+            $availableBalance = $mainBalance - $pendingWithdrawn;
+            
+            // Validate against fresh available balance
+            if ($amount > $availableBalance) {
+                DB::rollBack();
+                return back()->with('error', 'Insufficient balance. Available: ₹' . number_format($availableBalance, 2));
+            }
+            
+            if ($mainBalance < $amount) {
                 throw new \Exception('Insufficient Main Wallet balance.');
             }
             
+            // Deduct from main wallet
             $mainWallet->balance -= $amount;
             $mainWallet->save();
     
