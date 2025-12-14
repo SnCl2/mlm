@@ -309,6 +309,14 @@ document.addEventListener('DOMContentLoaded', function() {
         containerEl.innerHTML = '<div class="text-center p-8 text-gray-500">No tree data available. Please check if you have any referrals.</div>';
         return;
     }
+    
+    // Ensure we're displaying the root user's tree, not a child's tree
+    // The treeData should always be the logged-in user's tree
+    const loggedInUserId = {{ Auth::id() ?? 'null' }};
+    if (loggedInUserId && treeData.id !== loggedInUserId) {
+        console.warn('Warning: Tree data ID does not match logged-in user ID. Tree data ID:', treeData.id, 'Logged-in user ID:', loggedInUserId);
+        // This shouldn't happen, but if it does, we'll still display the tree
+    }
 
     // Configuration
     const config = {
@@ -410,13 +418,29 @@ document.addEventListener('DOMContentLoaded', function() {
         return d3Node;
     }
 
+    // Debug: Log tree data to console
+    console.log('Tree Data from Server:', treeData);
+    console.log('Root User ID:', treeData?.id);
+    console.log('Root User Name:', treeData?.name);
+    console.log('Root User Children:', treeData?.children);
+
     // Build tree structure
     let rootData;
     try {
-        rootData = transformToD3Hierarchy(treeData);
-        if (!rootData) {
+        // Ensure we're starting from the root node, not a child
+        if (!treeData || !treeData.id) {
             throw new Error('No tree data available');
         }
+        
+        rootData = transformToD3Hierarchy(treeData);
+        if (!rootData) {
+            throw new Error('Failed to transform tree data');
+        }
+        
+        // Debug: Log transformed root data
+        console.log('Transformed Root Data:', rootData);
+        console.log('Root Data ID:', rootData.id);
+        console.log('Root Data Name:', rootData.name);
     } catch (error) {
         console.error('Error transforming tree data:', error);
         document.getElementById('tree-container').innerHTML = '<div class="text-center p-8 text-gray-500">Error loading tree data. Please refresh the page.</div>';
@@ -424,6 +448,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const root = d3.hierarchy(rootData);
+    
+    // Debug: Verify root hierarchy
+    console.log('D3 Root Hierarchy:', root);
+    console.log('Root Data Name:', root.data.name);
+    console.log('Root Data ID:', root.data.id);
 
     // Create tree layout - HORIZONTAL (left to right)
     // Swap x and y: x becomes horizontal distance, y becomes vertical distance
