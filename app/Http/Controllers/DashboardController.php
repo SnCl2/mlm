@@ -57,7 +57,7 @@ class DashboardController extends Controller
     public function tree()
     {
         $user = Auth::user();
-        $maxDepth = 12;
+        $maxDepth = PHP_INT_MAX; // Unlimited depth - show entire tree
 
         // Pre-load all data for the entire tree to avoid N+1 queries
         $treeData = $this->buildBinaryTreeOptimized($user->id, $maxDepth);
@@ -85,7 +85,7 @@ class DashboardController extends Controller
     /**
      * Optimized version that loads all tree data in batches
      */
-    private function buildBinaryTreeOptimized($userId, $maxDepth = 12)
+    private function buildBinaryTreeOptimized($userId, $maxDepth = PHP_INT_MAX)
     {
         // Step 1: Collect all user IDs in the tree (BFS approach)
         $userIds = $this->collectTreeUserIds($userId, $maxDepth);
@@ -270,7 +270,8 @@ class DashboardController extends Controller
         while (!empty($queue)) {
             [$currentUserId, $depth] = array_shift($queue);
 
-            if ($depth >= $maxDepth) {
+            // Only check depth limit if it's not unlimited (PHP_INT_MAX)
+            if ($maxDepth !== PHP_INT_MAX && $depth >= $maxDepth) {
                 continue;
             }
 
@@ -377,7 +378,9 @@ class DashboardController extends Controller
      */
     private function buildTreeFromCache($userId, $users, $binaryNodes, $childrenMap, $nameCache, $userCountsCache, $depth)
     {
-        if ($depth <= 0) {
+        // Only check depth limit if it's not unlimited (PHP_INT_MAX)
+        // For unlimited depth, we only stop if depth becomes negative (shouldn't happen)
+        if ($depth !== PHP_INT_MAX && $depth <= 0) {
             return null;
         }
         
@@ -435,7 +438,7 @@ class DashboardController extends Controller
     /**
      * Legacy method kept for backward compatibility (deprecated - use buildBinaryTreeOptimized)
      */
-    public function buildBinaryTree($userId, $depth = 12)
+    public function buildBinaryTree($userId, $depth = 9999)
     {
         return $this->buildBinaryTreeOptimized($userId, $depth);
     }
