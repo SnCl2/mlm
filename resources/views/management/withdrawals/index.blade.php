@@ -70,6 +70,7 @@
         <thead>
             <tr class="bg-gray-100">
                 <th class="px-6 py-3 text-left">User</th>
+                <th class="px-6 py-3 text-left">Payment Details</th>
                 <th class="px-6 py-3 text-left">Amounts</th>
                 <th class="px-6 py-3 text-left">Status & Action</th>
             </tr>
@@ -90,6 +91,15 @@
                         </div>
                         <div class="text-xs text-gray-500">Referral: <span class="font-mono">{{ $request->user->referral_code ?? '-' }}</span></div>
                         <div class="text-xs text-gray-500 mt-0.5">Requested: {{ $request->created_at->format('Y-m-d H:i') }}</div>
+                    </td>
+
+                    <!-- Payment Details -->
+                    <td class="px-6 py-4 text-xs">
+                        @php $kyc = $request->user->kyc ?? null; @endphp
+                        <div class="text-gray-600"><span class="font-medium">Phone:</span> {{ $kyc->alternate_phone ?? '-' }}</div>
+                        <div class="text-gray-600"><span class="font-medium">Bank A/C:</span> {{ $kyc->bank_account_number ?? '-' }}</div>
+                        <div class="text-gray-600"><span class="font-medium">IFSC:</span> {{ $kyc->ifsc_code ?? '-' }}</div>
+                        <div class="text-gray-600"><span class="font-medium">UPI:</span> {{ $kyc->upi_id ?? '-' }}</div>
                     </td>
     
                     <!-- Amounts grouped -->
@@ -140,7 +150,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3" class="px-6 py-6 text-center text-gray-400">No requests found.</td>
+                    <td colspan="4" class="px-6 py-6 text-center text-gray-400">No requests found.</td>
                 </tr>
             @endforelse
         </tbody>
