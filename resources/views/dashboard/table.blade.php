@@ -41,21 +41,6 @@
         ">← Back</a>
     </div>
 
-    {{-- SUCCESS MESSAGE --}}
-    @if(session('success'))
-        <div style="
-            background:#dcfce7;
-            border:1px solid #86efac;
-            color:#166534;
-            padding:12px 16px;
-            border-radius:10px;
-            margin-bottom:20px;
-            font-size:14px;
-        ">
-            {{ session('success') }}
-        </div>
-    @endif
-
     {{-- FILTER BAR --}}
     <div style="
         display:flex;
@@ -115,7 +100,15 @@
 
             <tbody id="tableBody">
             @forelse($tableData as $row)
-                <tr style="border-bottom:1px solid #e5e7eb;">
+
+                {{-- OPTIONAL: hide root (level 0) --}}
+                @continue($row['level'] === 0)
+
+                <tr
+                    data-level="{{ $row['level'] }}"
+                    data-status="{{ strtolower($row['status']) }}"
+                    style="border-bottom:1px solid #e5e7eb;"
+                >
                     <td style="padding:14px;font-weight:600;">
                         {{ $row['level'] }}
                     </td>
@@ -174,58 +167,22 @@
 
                     {{-- LEFT USERS --}}
                     <td style="padding:14px;">
-                        @if(is_array($row['leftUsers']))
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                <span style="
-                                    background:#dcfce7;
-                                    color:#166534;
-                                    padding:5px 12px;
-                                    border-radius:999px;
-                                    font-size:12px;
-                                    font-weight:500;
-                                ">
-                                    Active {{ $row['leftUsers']['active'] ?? 0 }}
-                                </span>
-                                <span style="
-                                    background:#fee2e2;
-                                    color:#991b1b;
-                                    padding:5px 12px;
-                                    border-radius:999px;
-                                    font-size:12px;
-                                    font-weight:500;
-                                ">
-                                    Inactive {{ $row['leftUsers']['inactive'] ?? 0 }}
-                                </span>
-                            </div>
-                        @endif
+                        <span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:999px;font-size:12px;">
+                            Active {{ $row['leftUsers']['active'] ?? 0 }}
+                        </span>
+                        <span style="background:#fee2e2;color:#991b1b;padding:5px 12px;border-radius:999px;font-size:12px;">
+                            Inactive {{ $row['leftUsers']['inactive'] ?? 0 }}
+                        </span>
                     </td>
 
                     {{-- RIGHT USERS --}}
                     <td style="padding:14px;">
-                        @if(is_array($row['rightUsers']))
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                <span style="
-                                    background:#e0f2fe;
-                                    color:#075985;
-                                    padding:5px 12px;
-                                    border-radius:999px;
-                                    font-size:12px;
-                                    font-weight:500;
-                                ">
-                                    Active {{ $row['rightUsers']['active'] ?? 0 }}
-                                </span>
-                                <span style="
-                                    background:#ffe4e6;
-                                    color:#9f1239;
-                                    padding:5px 12px;
-                                    border-radius:999px;
-                                    font-size:12px;
-                                    font-weight:500;
-                                ">
-                                    Inactive {{ $row['rightUsers']['inactive'] ?? 0 }}
-                                </span>
-                            </div>
-                        @endif
+                        <span style="background:#e0f2fe;color:#075985;padding:5px 12px;border-radius:999px;font-size:12px;">
+                            Active {{ $row['rightUsers']['active'] ?? 0 }}
+                        </span>
+                        <span style="background:#ffe4e6;color:#9f1239;padding:5px 12px;border-radius:999px;font-size:12px;">
+                            Inactive {{ $row['rightUsers']['inactive'] ?? 0 }}
+                        </span>
                     </td>
                 </tr>
             @empty
@@ -240,25 +197,33 @@
     </div>
 </div>
 
-{{-- SIMPLE FILTER SCRIPT --}}
+{{-- FIXED FILTER SCRIPT --}}
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-    const s=document.getElementById('searchInput');
-    const st=document.getElementById('statusFilter');
-    const lv=document.getElementById('levelFilter');
-    const rows=document.querySelectorAll('#tableBody tr');
+document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('searchInput');
+    const status = document.getElementById('statusFilter');
+    const level  = document.getElementById('levelFilter');
+    const rows   = document.querySelectorAll('#tableBody tr');
 
-    function f(){
-        rows.forEach(r=>{
-            const t=r.innerText.toLowerCase();
-            let show=true;
-            if(s.value && !t.includes(s.value.toLowerCase())) show=false;
-            if(st.value && !t.includes(st.value)) show=false;
-            if(lv.value && !t.includes(' '+lv.value)) show=false;
-            r.style.display=show?'':'none';
+    function filterTable() {
+        rows.forEach(row => {
+            let show = true;
+
+            const text   = row.innerText.toLowerCase();
+            const rLevel = row.dataset.level;
+            const rStatus= row.dataset.status;
+
+            if (search.value && !text.includes(search.value.toLowerCase())) show = false;
+            if (status.value && rStatus !== status.value) show = false;
+            if (level.value && rLevel !== level.value) show = false;
+
+            row.style.display = show ? '' : 'none';
         });
     }
-    [s,st,lv].forEach(e=>e.addEventListener('input',f));
+
+    [search, status, level].forEach(el =>
+        el.addEventListener('input', filterTable)
+    );
 });
 </script>
 
