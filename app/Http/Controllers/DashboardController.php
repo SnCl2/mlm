@@ -529,7 +529,7 @@ class DashboardController extends Controller
     public function table()
     {
         $user = Auth::user();
-        $tableData = $this->flattenBinaryTree($this->buildBinaryTree($user->id, 16));
+        $tableData = $this->flattenBinaryTree($this->buildBinaryTree($user->id, 50));
         // dd($tableData);
         return view('dashboard.table', [
             'user' => $user,
