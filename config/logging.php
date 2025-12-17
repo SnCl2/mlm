@@ -127,6 +127,13 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'binary_points' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/binary-points.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
     ],
 
 ];

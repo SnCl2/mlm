@@ -7,7 +7,9 @@ use App\Models\ReferralIncome;
 use App\Models\MainWallet;
 use App\Models\BinaryNode;
 use App\Models\IncomeSetting;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class HandleUserActivationChange
 {
@@ -47,10 +49,17 @@ class HandleUserActivationChange
                 $uplineNode = BinaryNode::where('user_id', $upline['user_id'])->first();
                 if (!$uplineNode) continue;
             
+                $uplineUser = User::find($upline['user_id']);
+                $uplineUserName = $uplineUser ? $uplineUser->name : "User #{$upline['user_id']}";
+                
                 if ($upline['child_position'] === 'left') {
+                    $oldPoints = $uplineNode->left_points;
                     $uplineNode->left_points += $pointsPerActivation;
+                    Log::channel('binary_points')->info("LEFT_POINTS | User: {$uplineUserName} (ID: {$upline['user_id']}) | Level: {$upline['level']} | {$oldPoints} → {$uplineNode->left_points} (+{$pointsPerActivation}) | Triggered by: {$user->name} (ID: {$user->id})");
                 } elseif ($upline['child_position'] === 'right') {
+                    $oldPoints = $uplineNode->right_points;
                     $uplineNode->right_points += $pointsPerActivation;
+                    Log::channel('binary_points')->info("RIGHT_POINTS | User: {$uplineUserName} (ID: {$upline['user_id']}) | Level: {$upline['level']} | {$oldPoints} → {$uplineNode->right_points} (+{$pointsPerActivation}) | Triggered by: {$user->name} (ID: {$user->id})");
                 }
                 $uplineNode->save();
             }
