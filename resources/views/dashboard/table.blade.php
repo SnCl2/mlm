@@ -65,7 +65,7 @@
         <select id="levelFilter"
             style="padding:10px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;">
             <option value="">All Levels</option>
-            @foreach(range(1,25) as $lvl)
+            @foreach(range(1,15) as $lvl)
                 <option value="{{ $lvl }}">Level {{ $lvl }}</option>
             @endforeach
         </select>
