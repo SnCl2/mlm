@@ -109,7 +109,7 @@
                             <span class="font-semibold">₹{{ number_format($request->total_amount, 2) }}</span>
                         </div>
                         <div class="mt-0.5">
-                            <span class="font-medium text-blue-700">Payable (-18%):</span>
+                            <span class="font-medium text-blue-700">Payable (-12%):</span>
                             <span class="font-semibold text-green-800">
                                 ₹{{ number_format($request->total_amount - ($request->total_amount * 0.12), 2) }}
                             </span>
