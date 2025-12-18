@@ -103,6 +103,8 @@
 
                 {{-- OPTIONAL: hide root (level 0) --}}
                 @continue($row['level'] === 0)
+                {{-- User Request: limit to level 15 --}}
+                @continue($row['level'] > 15)
 
                 <tr
                     data-level="{{ $row['level'] }}"
