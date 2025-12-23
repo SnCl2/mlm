@@ -113,7 +113,7 @@ class ShopController extends Controller
                 "Your shop account has been created.\n" .
                 "Email: {$shop->email}\n" .
                 "Password: {$generatedPassword}\n\n" .
-                "Login URL: https://dreamlifemanagrmrnt.in/shop/login\n" .
+                "Login URL: https://dreamlifemanagement.in/shop/login\n" .
                 "Please login and change your password after first login.",
                 function ($message) use ($shop) {
                     $message->to($shop->email)
