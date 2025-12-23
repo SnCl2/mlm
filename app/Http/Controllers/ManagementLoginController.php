@@ -36,8 +36,9 @@ class ManagementLoginController extends Controller
         return view('management.dashboard', [
             'userCount' => \App\Models\User::count(),
             'shopCount' => \App\Models\Shop::count(),
-            // 'walletBalance' => \App\Models\Wallet::sum('balance'),
+            'walletBalance' => \App\Models\MainWallet::sum('balance'),
             'transactionTotal' => \App\Models\Transaction::sum('amount'),
+            'recentUsers' => \App\Models\User::latest()->take(5)->get(),
         ]);
     }
     
