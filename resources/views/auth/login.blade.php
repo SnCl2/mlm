@@ -52,7 +52,7 @@
       Sign in to your account
     </h1>
     <p class="text-sm text-slate-500 mt-1">
-      Access your referrals, keys, and dashboard
+      Access your referrals, keys, and dashboard.
     </p>
   </div>
 
