@@ -3,254 +3,261 @@
 @section('title', 'Shop Owner Dashboard')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold text-orange-500 mb-6">Shop Owner Dashboard</h1>
+<div style="max-width:1400px; margin:0 auto; padding:24px; font-family:system-ui,-apple-system,sans-serif;">
+
+  {{-- HEADER BAR --}}
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:16px; margin-bottom:24px; color:#ffffff; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div>
+          <div style="font-size:22px; font-weight:600;">Shop Dashboard</div>
+          <div style="font-size:13px; opacity:0.85;">Manage your sales and commissions</div>
+      </div>
+      <div>
+        <span class="bg-orange-500 text-white text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide">
+            {{ Auth::guard('shop')->user()->name }}
+        </span>
+      </div>
+  </div>
 
   {{-- Success Message --}}
   @if(session('success'))
-    <div class="bg-green-100 text-green-800 p-3 rounded mb-4">
-      {{ session('success') }}
+    <div class="bg-green-100 border border-green-200 text-green-800 px-4 py-3 rounded-xl mb-6 flex items-center shadow-sm">
+      <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
     </div>
   @endif
 
   <!-- Dashboard Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-orange-500">
-      <h3 class="text-sm text-gray-500 mb-1">Today’s Transactions</h3>
-      <p class="text-2xl font-bold">₹{{ number_format($todayTotal, 2) }}</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Card 1 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+      <div class="absolute right-0 top-0 h-full w-1 bg-orange-500"></div>
+      <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Today’s Sales</h3>
+      <div class="flex items-baseline">
+        <span class="text-2xl font-bold text-slate-800">₹{{ number_format($todayTotal, 2) }}</span>
+      </div>
+      <div class="absolute bottom-4 right-4 text-orange-100 group-hover:text-orange-50 transition-colors">
+          <i class="fas fa-calendar-day text-4xl"></i>
+      </div>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
-      <h3 class="text-sm text-gray-500 mb-1">Commission to give</h3>
-      <p class="text-2xl font-bold text-green-600">₹{{ number_format($commissionEarned, 2) }}</p>
+
+    <!-- Card 2 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="absolute right-0 top-0 h-full w-1 bg-green-500"></div>
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Commission Earned</h3>
+        <div class="flex items-baseline">
+          <span class="text-2xl font-bold text-slate-800">₹{{ number_format($commissionEarned, 2) }}</span>
+        </div>
+        <div class="absolute bottom-4 right-4 text-green-100 group-hover:text-green-50 transition-colors">
+            <i class="fas fa-hand-holding-usd text-4xl"></i>
+        </div>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
-      <h3 class="text-sm text-gray-500 mb-1">Total Transaction </h3>
-      <p class="text-2xl font-bold text-blue-600">₹{{ number_format($totalSubmitted, 2) }}</p>
+
+    <!-- Card 3 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="absolute right-0 top-0 h-full w-1 bg-blue-500"></div>
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Sales</h3>
+        <div class="flex items-baseline">
+          <span class="text-2xl font-bold text-slate-800">₹{{ number_format($totalSubmitted, 2) }}</span>
+        </div>
+        <div class="absolute bottom-4 right-4 text-blue-100 group-hover:text-blue-50 transition-colors">
+            <i class="fas fa-chart-line text-4xl"></i>
+        </div>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
-      <h3 class="text-sm text-gray-500 mb-1">Total Commission to Pay</h3>
-      <p class="text-2xl font-bold text-blue-600">₹{{ number_format($commission[0]->total_commission ?? 0, 2) }}</p>
+
+    <!-- Card 4 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="absolute right-0 top-0 h-full w-1 bg-purple-500"></div>
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Commission Payable</h3>
+        <div class="flex items-baseline">
+          <span class="text-2xl font-bold text-slate-800">₹{{ number_format($commission[0]->total_commission ?? 0, 2) }}</span>
+        </div>
+        <div class="absolute bottom-4 right-4 text-purple-100 group-hover:text-purple-50 transition-colors">
+            <i class="fas fa-file-invoice-dollar text-4xl"></i>
+        </div>
     </div>
   </div>
 
-  <!-- Add Purchase Form with QR Scanner -->
-    <!-- Relevant HTML from your Blade template for the QR Scanner -->
-    <div class="bg-white p-6 rounded-lg shadow mb-10">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">Add Purchase</h2>
-        <form id="purchaseForm" class="grid grid-cols-1 md:grid-cols-3 gap-4" method="POST" action="{{ route('shop.transaction.store') }}">
-            @csrf
-            <div>
-                <label class="block text-sm font-medium mb-1">Customer ID or Scan QR</label>
-                <input name="referral_code" id="referral_code" type="text" placeholder="Enter or scan..." class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                <button type="button" id="open-scanner-btn" class="mt-2 mb-2 bg-gray-100 border border-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200">
-                    Open Scanner
-                </button>
-                <div id="qr-reader" class="hidden mt-2"></div>
-                <div id="qr-reader-results" class="hidden text-sm text-green-600 mt-2"></div>
-                <div id="scanner-error" class="hidden text-sm text-red-600 mt-2"></div>
+  <!-- Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+    <!-- Add Purchase Form -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-semibold text-slate-700">New Transaction</h2>
+                <i class="fas fa-plus-circle text-orange-500"></i>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Purchase Amount</label>
-                <input name="amount" id="amount" type="number" placeholder="₹" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+            <div class="p-6">
+                <form id="purchaseForm" method="POST" action="{{ route('shop.transaction.store') }}" class="space-y-5">
+                    @csrf
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Customer ID / Code</label>
+                        <div class="relative">
+                            <input name="referral_code" id="referral_code" type="text" placeholder="Scanning..." 
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" required>
+                            <div class="absolute left-3 top-3.5 text-slate-400">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Scanner Controls -->
+                        <div class="mt-3">
+                             <button type="button" id="open-scanner-btn" 
+                                class="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> <span>Open Scanner</span>
+                            </button>
+                            <div id="qr-reader" class="hidden mt-3 rounded-lg overflow-hidden border border-slate-300"></div>
+                            <div id="qr-reader-results" class="hidden text-sm text-green-600 mt-2 font-medium bg-green-50 p-2 rounded border border-green-100 text-center"></div>
+                            <div id="scanner-error" class="hidden text-sm text-red-600 mt-2 bg-red-50 p-2 rounded border border-red-100 text-center"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Purchase Amount (₹)</label>
+                        <div class="relative">
+                            <input name="amount" id="amount" type="number" step="0.01" placeholder="0.00" 
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors" required>
+                            <div class="absolute left-3 top-3.5 text-slate-400">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-0.5">
+                        Submit Transaction
+                    </button>
+                </form>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class=" mt-2 w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition">Submit</button>
-            </div>
-        </form>
+        </div>
     </div>
 
-  <!-- Transaction History -->
-  <div class="bg-white p-6 rounded-lg shadow mb-10">
-    <h2 class="text-xl font-semibold text-gray-700 mb-4">Transaction History</h2>
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="text-left py-2 px-4 font-medium text-gray-600">Customer</th>
-            <th class="text-left py-2 px-4 font-medium text-gray-600">Amount</th>
-            <th class="text-left py-2 px-4 font-medium text-gray-600">Commission</th>
-            <th class="text-left py-2 px-4 font-medium text-gray-600">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse($transactions as $txn)
-            <tr class="border-b hover:bg-gray-50">
-              <td class="py-2 px-4">{{ $txn->user->name ?? 'N/A' }}</td>
-              <td class="py-2 px-4">₹{{ number_format($txn->purchase_amount, 2) }}</td>
-              <td class="py-2 px-4 text-green-600">₹{{ number_format($txn->commission_amount, 2) }}</td>
-              <td class="py-2 px-4">{{ $txn->created_at->format('Y-m-d H:i') }}</td>
-            </tr>
-          @empty
-            <tr>
-              <td colspan="4" class="text-center py-4 text-gray-500">No transactions yet.</td>
-            </tr>
-          @endforelse
-        </tbody>
-      </table>
+    <!-- Transaction History -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-semibold text-slate-700">Recent Transactions</h2>
+                <span class="text-xs bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">Last {{ count($transactions) }}</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-4">Customer</th>
+                            <th class="px-6 py-4">Amount</th>
+                            <th class="px-6 py-4">Commission</th>
+                            <th class="px-6 py-4">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      @forelse($transactions as $txn)
+                        <tr class="hover:bg-slate-50 transition-colors">
+                          <td class="px-6 py-4">
+                              <div class="flex items-center gap-3">
+                                  <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs">
+                                      {{ substr($txn->user->name ?? '?', 0, 1) }}
+                                  </div>
+                                  <span class="font-medium text-slate-700">{{ $txn->user->name ?? 'Unknown' }}</span>
+                              </div>
+                          </td>
+                          <td class="px-6 py-4 font-bold text-slate-700">₹{{ number_format($txn->purchase_amount, 2) }}</td>
+                          <td class="px-6 py-4 text-green-600 font-medium">+ ₹{{ number_format($txn->commission_amount, 2) }}</td>
+                          <td class="px-6 py-4 text-slate-500 text-xs">{{ $txn->created_at->format('M d, Y h:i A') }}</td>
+                        </tr>
+                      @empty
+                        <tr>
+                          <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">
+                              <i class="fas fa-inbox text-2xl mb-2 block opacity-20"></i>
+                              No recent transactions found.
+                          </td>
+                        </tr>
+                      @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Commission Update -->
-  
+  </div> <!-- End Grid -->
 </div>
 @endsection
+
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("DOM is fully loaded");
-    });
-
-    console.log("Script loaded");
-
-    ['purchaseForm', 'referral_code', 'amount', 'open-scanner-btn', 'qr-reader', 'qr-reader-results', 'scanner-error'].forEach(id => {
-        if (!document.getElementById(id)) {
-            console.error(`Missing element: #${id}`);
-        }
-    });
-
-    // Wrap your entire JavaScript code inside a DOMContentLoaded listener
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get references to the DOM elements
-        const form = document.getElementById('purchaseForm');
+        // Elements
         const openScannerBtn = document.getElementById('open-scanner-btn');
         const qrReaderElement = document.getElementById('qr-reader');
         const qrReaderResults = document.getElementById('qr-reader-results');
         const scannerError = document.getElementById('scanner-error');
-        const customerIdInput = document.getElementById('referral_code'); // Added for clarity
+        const customerIdInput = document.getElementById('referral_code');
 
-        let qrScanner = null; // Variable to hold the Html5Qrcode instance
+        let qrScanner = null;
 
-        // Check if elements exist before attaching listeners or proceeding
-        if (!form || !openScannerBtn || !qrReaderElement || !qrReaderResults || !scannerError || !customerIdInput) {
-            console.error("One or more required DOM elements not found. Please check your HTML IDs.");
-            return; // Exit if elements are missing
-        }
+        if (!customerIdInput || !openScannerBtn) return;
 
-        
-        // Scanner button handler: Toggles the scanner on/off
-        openScannerBtn.addEventListener('click', function() {
-            if (qrScanner && qrScanner.isScanning) {
-                stopScanner(); // If scanning, stop it
-            } else {
-                startScanner(); // Otherwise, start it
-            }
+        openScannerBtn.addEventListener('click', () => {
+             if (qrScanner && qrScanner.isScanning) {
+                 stopScanner();
+             } else {
+                 startScanner();
+             }
         });
 
-        /**
-         * Initializes and starts the QR code scanner.
-         * It requests camera access and begins scanning for QR codes.
-         */
         function startScanner() {
-            // Clear any previous error or result messages
             scannerError.classList.add('hidden');
             qrReaderResults.classList.add('hidden');
-
-            // Show the scanner UI element
             qrReaderElement.classList.remove('hidden');
-            openScannerBtn.textContent = 'Stop Scanner'; // Change button text
+            openScannerBtn.innerHTML = '<i class="fas fa-stop-circle"></i> <span>Stop Scanner</span>';
+            openScannerBtn.classList.add('text-red-600', 'bg-red-50');
 
-            // Create a new Html5Qrcode instance, targeting the 'qr-reader' div
             qrScanner = new Html5Qrcode("qr-reader");
 
-            // Configuration for the scanner
-            const config = {
-                fps: 10, // Frames per second for scanning
-                qrbox: { width: 250, height: 250 }, // Size of the QR scanning box
-                rememberLastUsedCamera: true, // Remember user's camera preference
-                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] // Only use camera for scanning
-            };
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-            // Get available cameras and start the scanner
             Html5Qrcode.getCameras().then(devices => {
-                if (devices.length > 0) {
-                    // Try to find the back camera (usually has 'back' or 'rear' in the label)
-                    const backCamera = devices.find(device => 
-                        device.label.toLowerCase().includes('back') || 
-                        device.label.toLowerCase().includes('rear')
-                    );
-            
-                    const selectedCameraId = backCamera ? backCamera.id : devices[0].id;
-            
-                    qrScanner.start(
-                        selectedCameraId,
-                        config,
-                        onScanSuccess,
-                        onScanError
-                    ).catch(err => {
-                        showScannerError("Failed to start scanner: " + err);
-                        stopScanner();
-                    });
+                if (devices && devices.length) {
+                    const cameraId = devices[0].id;
+                    qrScanner.start(cameraId, config, onScanSuccess, onScanError)
+                        .catch(err => {
+                            showError("Failed to start: " + err);
+                            stopScanner();
+                        });
                 } else {
-                    showScannerError("No cameras found.");
+                    showError("No cameras found.");
                 }
             }).catch(err => {
-                showScannerError("Camera access error: " + err);
+                showError("Camera error: " + err);
             });
         }
 
-        /**
-         * Stops the QR code scanner and cleans up the UI.
-         */
         function stopScanner() {
             if (qrScanner) {
-                qrScanner.stop() // Stop the scanner
-                    .then(() => {
-                        qrScanner = null; // Clear the scanner instance
-                        qrReaderElement.classList.add('hidden'); // Hide scanner UI
-                        openScannerBtn.textContent = 'Open Scanner'; // Reset button text
-                    })
-                    .catch(err => {
-                        console.error("Failed to stop scanner:", err);
-                        // Even if stopping fails, try to hide UI and reset button
-                        qrReaderElement.classList.add('hidden');
-                        openScannerBtn.textContent = 'Open Scanner';
-                    });
+                qrScanner.stop().then(() => {
+                    qrScanner.clear();
+                    qrScanner = null;
+                    qrReaderElement.classList.add('hidden');
+                    openScannerBtn.innerHTML = '<i class="fas fa-camera"></i> <span>Open Scanner</span>';
+                    openScannerBtn.classList.remove('text-red-600', 'bg-red-50');
+                }).catch(err => console.error(err));
             }
         }
 
-        /**
-         * Callback function executed when a QR code is successfully scanned.
-         * @param {string} decodedText - The data decoded from the QR code.
-         * @param {object} decodedResult - Additional details about the scan.
-         */
         function onScanSuccess(decodedText, decodedResult) {
-            // Populate the customer ID input field with the scanned data
             customerIdInput.value = decodedText;
-            // Display the scanned text to the user
-            qrReaderResults.textContent = `Scanned: ${decodedText}`;
+            qrReaderResults.textContent = "Scanned: " + decodedText;
             qrReaderResults.classList.remove('hidden');
-
-            // Stop the scanner immediately after a successful scan
             stopScanner();
         }
 
-        /**
-         * Callback function executed when the scanner encounters an error (e.g., no QR code in view).
-         * This is generally verbose, so it's often used for debugging.
-         * @param {string} errorMessage - The error message.
-         */
         function onScanError(errorMessage) {
-            // You can uncomment the line below for debugging, but it can be noisy during live scanning.
-            // console.warn(`QR Scan error: ${errorMessage}`);
+            // Quietly ignore scan errors during seeking
         }
 
-        /**
-         * Displays an error message related to the scanner.
-         * @param {string} message - The error message to display.
-         */
-        function showScannerError(message) {
-            scannerError.textContent = message;
+        function showError(msg) {
+            scannerError.textContent = msg;
             scannerError.classList.remove('hidden');
         }
-
-        // Event listener to clean up the scanner if the user navigates away from the page
-        window.addEventListener('beforeunload', function() {
-            if (qrScanner && qrScanner.isScanning) {
-                qrScanner.stop().catch(err => {
-                    console.error("Error stopping scanner on unload:", err);
-                });
-            }
-        });
-    }); // End of DOMContentLoaded listener
+    });
 </script>
 @endpush
