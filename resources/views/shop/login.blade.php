@@ -1,130 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shop Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root {
-      --primary: #f97316;
-      --primary-light: #ffedd5;
-      --primary-dark: #ea580c;
+      /* Maintaining the Orange theme for Shop to distinguish from User/Admin */
+      --brand: #f97316; 
     }
-
-    body {
-      background-color: #f8fafc;
-    }
-
-    .input-focus-effect:focus {
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
-    }
-
-    .btn-primary {
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.1), 0 2px 4px -1px rgba(249, 115, 22, 0.06);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.1), 0 4px 6px -2px rgba(249, 115, 22, 0.05);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
+    .input-focus:focus {
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row">
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
 
-  <!-- Left Column -->
-  <div class="hidden md:flex md:w-1/2 items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 p-8">
-    <div class="max-w-lg text-center">
-      <img src="https://source.unsplash.com/800x800/?store,shop,business" alt="Graphic" class="w-full rounded-xl shadow-lg mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Shop Portal</h2>
-      <p class="text-gray-600">Login to manage your shop, check cashback, and transactions.</p>
+<!-- CONTAINER -->
+<div class="w-full max-w-md">
+
+  <!-- BRAND -->
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center justify-center mb-4">
+      <img src="{{ asset('public/storage/logo.png') }}" 
+            alt="Logo" 
+            class="h-[200px] w-[200px] object-contain"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500 text-white" style="display: none;">
+        <i class="fas fa-store text-xl"></i>
+      </div>
     </div>
+    <h1 class="text-2xl font-semibold text-slate-900">
+      Shop Portal
+    </h1>
+    <p class="text-sm text-slate-500 mt-1">
+      Login to manage your shop
+    </p>
   </div>
 
-  <!-- Right Column -->
-  <div class="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
-    <div class="w-full max-w-md bg-white rounded-xl shadow-sm p-6 md:p-8">
-      <div class="flex justify-center mb-6">
-        <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
-          <i class="fas fa-store text-orange-500 text-2xl"></i>
+  <!-- CARD -->
+  <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+
+    {{-- Login Error --}}
+    @if ($errors->any())
+      <div class="mb-4 text-sm text-red-600 text-center">
+        {{ $errors->first() }}
+      </div>
+    @endif
+
+    <form method="POST" action="{{ route('shop.login.submit') }}" class="space-y-5">
+      @csrf
+
+      <!-- EMAIL -->
+      <div>
+        <label class="text-sm font-medium text-slate-700">Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="shop@example.com"
+          class="mt-1 w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none input-focus">
+      </div>
+
+      <!-- PASSWORD -->
+      <div>
+        <div class="flex justify-between items-center">
+          <label class="text-sm font-medium text-slate-700">Password</label>
+          <a href="#" class="text-xs text-orange-600 hover:underline">Forgot?</a>
+        </div>
+
+        <div class="relative mt-1">
+          <input
+            type="password"
+            name="password"
+            required
+            placeholder="••••••••"
+            class="w-full px-4 py-3 pr-10 border border-slate-300 rounded-xl focus:outline-none input-focus">
+
+          <button type="button"
+                  class="absolute right-3 top-3 text-slate-400 toggle-password">
+            <i class="fa-regular fa-eye"></i>
+          </button>
         </div>
       </div>
 
-      <h2 class="text-2xl font-bold text-center text-gray-800 mb-1">Shop Login</h2>
-      <p class="text-center text-gray-500 mb-6">Access your shop dashboard</p>
+      <!-- REMEMBER -->
+      <div class="flex items-center gap-2">
+        <input id="remember" name="remember" type="checkbox" class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+        <label for="remember" class="text-sm text-slate-600">Remember me</label>
+      </div>
 
-      @if ($errors->any())
-        <div class="mb-4 text-sm text-red-600 text-center">
-          {{ $errors->first() }}
-        </div>
-      @endif
-
-      <form method="POST" action="{{ route('shop.login.submit') }}" class="space-y-5">
-        @csrf
-        <div>
-          <label class="block mb-2 text-sm font-medium text-gray-700">Email</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i class="fas fa-envelope text-gray-400"></i>
-            </div>
-            <input type="email" name="email" placeholder="shop@example.com"
-              class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none input-focus-effect focus:border-orange-300 placeholder-gray-400"
-              required>
-          </div>
-        </div>
-
-        <div>
-          <label class="block mb-2 text-sm font-medium text-gray-700">Password</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i class="fas fa-lock text-gray-400"></i>
-            </div>
-            <input type="password" name="password" placeholder="••••••••"
-              class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none input-focus-effect focus:border-orange-300 placeholder-gray-400"
-              required>
-            <button type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-500 toggle-password">
-              <i class="far fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center">
-          <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-orange-500 focus:ring-orange-400 border-gray-300 rounded">
-          <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
-        </div>
-
-        <button type="submit"
-          class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold btn-primary">
-          Login
-        </button>
-      </form>
-
-      <p class="mt-6 text-center text-sm text-gray-600">
-        Not a shop? 
-        <a href="/" class="text-orange-500 font-semibold hover:underline ml-1">Go to main site</a>
-      </p>
-    </div>
+      <!-- SUBMIT -->
+      <button
+        type="submit"
+        class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition">
+        Login
+      </button>
+    </form>
   </div>
 
-  <script>
-    document.querySelectorAll('.toggle-password').forEach(button => {
-      button.addEventListener('click', function () {
-        const input = this.closest('.relative').querySelector('input');
-        if (input.type === 'password') {
-          input.type = 'text';
-          this.querySelector('i').classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-          input.type = 'password';
-          this.querySelector('i').classList.replace('fa-eye-slash', 'fa-eye');
-        }
-      });
+  <!-- FOOTER -->
+  <p class="mt-6 text-center text-sm text-slate-600">
+    Not a shop?
+    <a href="/" class="text-orange-600 font-semibold hover:underline">
+      Go to main site
+    </a>
+  </p>
+
+  <!-- TRUST -->
+  <p class="mt-4 text-center text-xs text-slate-400">
+    Secured & encrypted login
+  </p>
+</div>
+
+<script>
+  document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = btn.closest('.relative').querySelector('input');
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
